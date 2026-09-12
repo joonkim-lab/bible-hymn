@@ -25,7 +25,9 @@ body{padding-top:var(--top);padding-bottom:calc(56px + var(--bot))}
 header{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:8px 12px;padding-top:calc(8px + var(--top));margin-top:calc(-1 * var(--top))}
 .row{display:flex;align-items:center;gap:8px}
 .grow{flex:1;min-width:0}
-input[type=search]{width:100%;font-size:17px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--chip);outline:none;-webkit-appearance:none}
+input[type=search]{width:100%;font-size:17px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--chip);outline:none;-webkit-appearance:none;color:var(--fg);caret-color:var(--tint)}
+input[type=search]::placeholder{color:var(--muted)}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none}
 button{font:inherit;border:0;background:var(--chip);color:var(--fg);border-radius:10px;padding:8px 12px;font-size:15px}
 button.tint{background:var(--tint);color:#fff}
 button.icon{padding:8px 10px;font-size:18px;line-height:1}
@@ -60,6 +62,7 @@ nav.tabs button.on{color:var(--tint)}
 .small{font-size:12px;color:var(--muted)}
 .hidden{display:none!important}
 html[data-theme=dark]{color-scheme:dark}
+html[data-theme=light]{color-scheme:light}
 html[data-theme=dark]{--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
 html[data-theme=dark] header{background:rgba(0,0,0,.92)}
 html[data-theme=dark] .seg button.on{background:#3a3a3c}
