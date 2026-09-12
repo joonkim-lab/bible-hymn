@@ -81,10 +81,11 @@ header.bh{padding:6px 8px}
 .title{background:transparent;font-size:20px;font-weight:700;text-align:left;padding:8px 6px;display:flex;align-items:center;gap:6px}
 .title .chev{color:var(--muted);font-size:14px}
 #verses{padding:8px 16px 24px;font-size:var(--fs);line-height:1.58;word-break:keep-all;overflow-wrap:anywhere;letter-spacing:-.01em}
-#verses .chtitle{text-align:center;font-size:calc(var(--fs) * 1.15);font-weight:700;margin:10px 0 4px}
-.h{text-align:center;color:var(--tint);font-weight:500;margin:18px 0 8px;font-size:calc(var(--fs) * .88);line-height:1.4}
-.h.en{color:var(--muted);font-weight:500;font-size:calc(var(--fs) * .8);margin-top:2px}
-.h.hm{display:block;margin:10px 0 6px}
+#verses .chtitle{text-align:center;font-size:clamp(18px,calc(var(--fs) * .9),22px);font-weight:700;margin:10px 0 4px}
+.h{text-align:center;color:var(--tint);font-weight:500;margin:18px 0 8px;font-size:clamp(14px,calc(var(--fs) * .72),17px);line-height:1.4}
+.h .ref{font-size:.85em;color:var(--muted);white-space:nowrap}
+.h.en{color:var(--muted);font-weight:500;font-size:clamp(13px,calc(var(--fs) * .65),15px);margin-top:2px}
+.h.hm{display:block;margin:10px 0 6px;font-size:clamp(14px,calc(var(--fs) * .72),17px)}
 .v{display:grid;grid-template-columns:auto 1fr;margin:0 -6px 6px;padding:3px 6px;border-radius:8px}
 .v.hl{background:var(--hl)}
 .v.ul .t>span:first-child,.v.ul .sub{text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:2px;text-underline-offset:.22em;text-decoration-skip-ink:none;-webkit-text-decoration-skip:none}
@@ -370,14 +371,15 @@ function renderChapter(){
   const M=src(main),S=src(sub);const sBy={};S.forEach(v=>sBy[v.v]=v);
   const mk=getMarks();const cls=v=>mk[v]?' '+mk[v]:'';
   let html=`<div class="chtitle">${bk.kr} ${c}장</div>`;
-  const H=(t,cls='')=>showHead&&t?`<div class="h ${cls}">${esc(t)}</div>`:'';
+  const fmtH=t=>esc(t).replace(/\(([^()]*\d[^()]*)\)/g,' <span class="ref">($1)</span>');
+  const H=(t,cls='')=>showHead&&t?`<div class="h ${cls}">${fmtH(t)}</div>`:'';
   if(sub&&sBy[0]&&!M.some(v=>v.v===0)){const v=sBy[0];html+=H(v.h,'en')+`<div class="v v0" data-v="0"><span class="n">0</span><span class="t"><span class="sub serif sup">${esc(v.t)}</span></span></div>`}
   for(const v of M){
     const s=sBy[v.v];
     html+=H(v.h,main==='en'?'':'');
     if(s&&s.h&&!(sBy[0]&&sBy[0].h===s.h&&v.v!==0))html+=H(s.h,'en');
     let t=esc(v.t);
-    if(v.hm)t=t.replace(' ¶ ',showHead?`</span><span class="h hm">${esc(v.hm)}</span><span>`:' ');else t=t.replace(' ¶ ',' ');
+    if(v.hm)t=t.replace(' ¶ ',showHead?`</span><span class="h hm">${fmtH(v.hm)}</span><span>`:' ');else t=t.replace(' ¶ ',' ');
     const isSup=v.v===0;
     html+=`<div class="v${cls(v.v)}${isSup?' v0':''}" data-v="${v.v}"><span class="n">${v.vl||v.v}</span><span class="t"><span class="${isSup?'sup':''}">${t}</span>${s?`<span class="sub${sub==='en'?' serif':''}">${esc(s.t)}</span>`:''}</span></div>`;
   }
