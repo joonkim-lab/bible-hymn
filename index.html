@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="성경찬송">
 <meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-180.png">
@@ -16,7 +17,7 @@
   --bg:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --tint:#0a66c2;
   --hl:#e6ff8f; --ul:#e0342c; --head:#3a3a3c; --chip:#f2f2f7;
   --top:env(safe-area-inset-top,0px); --bot:env(safe-area-inset-bottom,0px);
-  --fs:18px;
+  --fs:21px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;-webkit-text-size-adjust:100%}
@@ -58,12 +59,18 @@ nav.tabs button.on{color:var(--tint)}
 .crumb{font-size:16px;font-weight:600;padding:8px 12px;border-radius:10px;background:var(--chip)}
 .small{font-size:12px;color:var(--muted)}
 .hidden{display:none!important}
+html[data-theme=dark]{color-scheme:dark}
+html[data-theme=dark]{--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
+html[data-theme=dark] header{background:rgba(0,0,0,.92)}
+html[data-theme=dark] .seg button.on{background:#3a3a3c}
+html[data-theme=dark] .v .sub{color:#bcc9e8}
+html[data-theme=dark] .v.hl{color:#111}.v.hl .sub{color:#2b3a5c}.v.hl .n{color:#0a4fa0}
 @media (prefers-color-scheme: dark){
-  :root{--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
-  header{background:rgba(0,0,0,.92)}
-  .seg button.on{background:#3a3a3c}
-  .v .sub{color:#bcc9e8}
-  .v.hl{color:#111}.v.hl .sub{color:#2b3a5c}.v.hl .n{color:#0a4fa0}
+html:not([data-theme=light]){--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
+html:not([data-theme=light]) header{background:rgba(0,0,0,.92)}
+html:not([data-theme=light]) .seg button.on{background:#3a3a3c}
+html:not([data-theme=light]) .v .sub{color:#bcc9e8}
+html:not([data-theme=light]) .v.hl{color:#111}.v.hl .sub{color:#2b3a5c}.v.hl .n{color:#0a4fa0}
 }
 
 /* ---- 성경 새 UI ---- */
@@ -188,8 +195,10 @@ input[type=range]{accent-color:var(--tint)}
       <div><div class="sec">주 역본</div><div class="opts" id="optMain"><button data-v="kr">개역개정</button><button data-v="en">ESV (2025)</button></div></div>
       <div><div class="sec">대역 (아래 줄)</div><div class="opts" id="optSub"><button data-v="">없음</button><button data-v="en">ESV (2025)</button><button data-v="kr">개역개정</button></div></div>
     </div>
+    <div class="sec">화면 모드</div>
+    <div class="seg" id="themeSeg" style="margin:0 16px 8px"><button data-t="auto">시스템</button><button data-t="light">라이트</button><button data-t="dark">다크</button></div>
     <div class="sec">글자 크기</div>
-    <div class="row" style="padding:0 16px 8px"><button class="icon" id="fsMinus">A−</button><input type="range" id="fsRange" min="13" max="30" step="1" class="grow"><button class="icon" id="fsPlus">A+</button></div>
+    <div class="row" style="padding:0 16px 8px"><button class="icon" id="fsMinus">A−</button><input type="range" id="fsRange" min="14" max="36" step="1" class="grow"><button class="icon" id="fsPlus">A+</button></div>
     <div class="row" style="padding:4px 16px 20px;justify-content:space-between"><span class="small">소제목 표시</span><label class="sw"><input type="checkbox" id="optHead" checked><span></span></label></div>
   </div>
 </div>
@@ -278,19 +287,24 @@ el.addEventListener('touchstart',e=>{if(e.touches.length===1){x0=e.touches[0].cl
 el.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;if(Math.abs(dx)>70&&Math.abs(dy)<50&&window.visualViewport&&window.visualViewport.scale<=1.01){dx<0?$('#hymnNext').click():$('#hymnPrev').click()}},{passive:true});})();
 
 /* ---------- 성경 ---------- */
-let main=LS.get('main','kr'),sub=LS.get('sub',''),cur=LS.get('pos',null),fs=LS.get('fs',18),showHead=LS.get('head',true);
+let main=LS.get('main','kr'),sub=LS.get('sub',''),cur=LS.get('pos',null),fs=LS.get('fs',21),showHead=LS.get('head',true);
 if(sub===main)sub='';
+if(fs===18)fs=21;
 document.documentElement.style.setProperty('--fs',fs+'px');
 const openSheet=id=>{$('#'+id).classList.add('on');document.body.style.overflow='hidden'};
 const closeSheets=()=>{document.querySelectorAll('.sheet').forEach(x=>x.classList.remove('on'));document.body.style.overflow=''};
 document.querySelectorAll('.sheet-bg,[data-close]').forEach(x=>x.addEventListener('click',closeSheets));
 
 /* 설정 시트 */
+let theme=LS.get('theme','auto');
+function applyTheme(){if(theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',theme);document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.t===theme))}
+applyTheme();
+$('#themeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;theme=b.dataset.t;LS.set('theme',theme);applyTheme()});
 function paintSet(){document.querySelectorAll('#optMain button').forEach(b=>b.classList.toggle('on',b.dataset.v===main));document.querySelectorAll('#optSub button').forEach(b=>{b.classList.toggle('on',b.dataset.v===sub);b.disabled=b.dataset.v===main});$('#fsRange').value=fs;$('#optHead').checked=showHead}
 $('#btnSet').onclick=()=>{paintSet();openSheet('shSet')};
 $('#optMain').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;main=b.dataset.v;if(sub===main)sub='';LS.set('main',main);LS.set('sub',sub);paintSet();reRender()});
 $('#optSub').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;sub=b.dataset.v;LS.set('sub',sub);paintSet();reRender()});
-function setFs(v){fs=Math.min(30,Math.max(13,v));LS.set('fs',fs);document.documentElement.style.setProperty('--fs',fs+'px');$('#fsRange').value=fs}
+function setFs(v){fs=Math.min(36,Math.max(14,v));LS.set('fs',fs);document.documentElement.style.setProperty('--fs',fs+'px');$('#fsRange').value=fs}
 $('#fsPlus').onclick=()=>setFs(fs+1);$('#fsMinus').onclick=()=>setFs(fs-1);$('#fsRange').oninput=e=>setFs(+e.target.value);
 $('#optHead').onchange=e=>{showHead=e.target.checked;LS.set('head',showHead);reRender()};
 function reRender(){if(cur){const y=window.scrollY;openChapter(cur.b,cur.c).then(()=>window.scrollTo(0,y))}}
