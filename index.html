@@ -14,7 +14,7 @@
 <style>
 :root{
   --bg:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --tint:#0a66c2;
-  --hl:#d9ff7a; --head:#3a3a3c; --chip:#f2f2f7;
+  --hl:#e6ff8f; --ul:#e0342c; --head:#3a3a3c; --chip:#f2f2f7;
   --top:env(safe-area-inset-top,0px); --bot:env(safe-area-inset-bottom,0px);
   --fs:18px;
 }
@@ -45,8 +45,7 @@ nav.tabs button.on{color:var(--tint)}
 .empty{padding:40px 16px;text-align:center;color:var(--muted)}
 /* hymn view */
 #hymnView img{width:100%;height:auto;display:block;background:#fff}
-#lyrics{padding:6px 18px 4px;font-size:var(--fs);line-height:1.6;white-space:pre-wrap;word-break:keep-all}
-#lyrics:empty{display:none}
+.zoomwrap{background:#fff}
 #hymnView .cap{padding:8px 14px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between}
 .zoomwrap{width:100%;overflow:auto;touch-action:pan-x pan-y pinch-zoom}
 /* bible */
@@ -60,11 +59,11 @@ nav.tabs button.on{color:var(--tint)}
 .small{font-size:12px;color:var(--muted)}
 .hidden{display:none!important}
 @media (prefers-color-scheme: dark){
-  :root{--bg:#000;--fg:#f2f2f7;--muted:#98989d;--line:#2c2c2e;--tint:#4da3ff;--hl:#5a6b00;--head:#e5e5ea;--chip:#1c1c1e}
+  :root{--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
   header{background:rgba(0,0,0,.92)}
   .seg button.on{background:#3a3a3c}
-  .v .sub{color:#9fb3d9}
-  #hymnView img{filter:invert(1) hue-rotate(180deg) brightness(.92)}
+  .v .sub{color:#bcc9e8}
+  .v.hl{color:#111}.v.hl .sub{color:#2b3a5c}.v.hl .n{color:#0a4fa0}
 }
 
 /* ---- 성경 새 UI ---- */
@@ -78,6 +77,12 @@ header.bh{padding:6px 8px}
 .h.hm{display:block;margin:10px 0 6px}
 .v{display:grid;grid-template-columns:1.6em 1fr;margin:0 -6px 8px;padding:3px 6px;border-radius:8px}
 .v.hl{background:var(--hl)}
+.v.ul .t>span:first-child{text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:2px;text-underline-offset:4px}
+.v.ul .sub{text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:1.5px;text-underline-offset:3px}
+.v.sel{outline:2px solid var(--tint);outline-offset:-2px}
+.mk{display:flex;gap:6px;justify-content:center;padding:6px 0 10px}
+.mk button{font-size:14px;padding:8px 14px}
+.mk .b-hl{background:var(--hl);color:#111}.mk .b-ul{color:var(--ul);text-decoration:underline;text-decoration-thickness:2px}
 .v .n{font-size:.72em;color:var(--tint);font-weight:700;padding-top:.35em}
 .v .t{min-width:0}
 .v .sub{display:block;margin:4px 0 2px 1.2em;color:#4a5a7a;font-size:.92em;line-height:1.55}
@@ -102,6 +107,7 @@ header.bh{padding:6px 8px}
 .col.books{flex:2.2}.col.ch{flex:1}.col.vs{flex:1}
 .col .grp{font-size:11px;color:var(--muted);background:var(--chip);padding:4px 10px;position:sticky;top:0}
 .col .it{padding:11px 12px;border-bottom:1px solid var(--line);font-size:16px}
+.col .it .ab{color:var(--muted);font-size:13px}.col .it.on .ab{color:#e6f0ff}
 .col .it small{display:block;color:var(--muted);font-size:11px}
 .col .it.on{background:var(--tint);color:#fff}
 .col .it.on small{color:#e6f0ff}
@@ -137,7 +143,7 @@ input[type=range]{accent-color:var(--tint)}
   <div id="hymnView" class="hidden">
     <div class="cap"><span id="hymnCapL"></span><span id="hymnCapR"></span></div>
     <div class="zoomwrap"><img id="hymnImg" alt=""></div>
-    <div id="lyrics"></div>
+    
     <div class="chapnav"><button id="hymnPrev">‹ 이전 장</button><button id="hymnNext">다음 장 ›</button></div>
   </div>
 </section>
@@ -153,7 +159,7 @@ input[type=range]{accent-color:var(--tint)}
   <div id="reader">
     <div id="verses"><div class="empty">위의 제목을 눌러 책과 장을 고르세요</div></div>
     <div class="chapnav"><button id="chPrev">‹ 이전 장</button><button id="chNext">다음 장 ›</button></div>
-    <div class="small" style="text-align:center;padding-bottom:16px">절을 누르면 형광펜 표시 · 다시 누르면 해제</div>
+    <div class="small" style="text-align:center;padding-bottom:16px">절을 누르면 형광펜 · 빨간 줄 · 지우기를 고를 수 있어요</div>
   </div>
 </section>
 
@@ -252,7 +258,7 @@ $('#hymnList').addEventListener('click',e=>{const li=e.target.closest('li');if(l
 function openHymn(n){
   const h=hymns.find(x=>x.n===n);if(!h)return;curHymn=n;
   $('#hymnImg').src='hymn/'+String(n).padStart(3,'0')+'.webp';$('#hymnImg').alt=h.t;
-  $('#hymnCapL').textContent=`${n}장 · ${h.t}`;$('#hymnCapR').textContent=(h.cat||'')+(h.tong?' · 통 '+h.tong:'');$('#lyrics').textContent=h.ly||'';
+  $('#hymnCapL').textContent=`${n}장 · ${h.t}`;$('#hymnCapR').textContent=(h.cat||'')+(h.tong?' · 통 '+h.tong:'');
   $('#hymnList').classList.add('hidden');$('#hymnView').classList.remove('hidden');$('#hymnBack').classList.remove('hidden');
   $('#hymnPrev').disabled=n<=1;$('#hymnNext').disabled=n>=645;
   LS.set('hymn',n);window.scrollTo(0,0);
@@ -301,7 +307,7 @@ function paintBooks(){
   for(const [g,a,b] of GROUPS){
     const items=books.slice(a,b).filter(x=>!choF||cho(x.kr)[0]===choF);
     if(!items.length)continue;
-    html+=`<div class="grp">${g}</div>`+items.map(x=>`<div class="it${tocB===x.i?' on':''}" data-b="${x.i}"><span class="ab">${x.kra}</span> ${x.kr}<small>${x.en}</small></div>`).join('');
+    html+=`<div class="grp">${g}</div>`+items.map(x=>`<div class="it${tocB===x.i?' on':''}" data-b="${x.i}">${x.kr} <span class="ab">(${x.kra})</span><small>${x.en}</small></div>`).join('');
   }
   $('#colBooks').innerHTML=html||'<div class="empty">없음</div>';
 }
@@ -340,11 +346,12 @@ async function openChapter(b,c,verse){
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
 function hlKey(){return `hl:${cur.b}:${cur.c}`}
+function getMarks(){let m=LS.get(hlKey(),{});if(Array.isArray(m)){const o={};m.forEach(v=>o[v]='hl');m=o;LS.set(hlKey(),m)}return m}
 function renderChapter(){
   const {b,c}=cur;const bk=books[b];
   const src=w=>w==='kr'?((cacheKR[b]||{})[c]||[]):w==='en'?((cacheEN[b]||{})[c]||[]):[];
   const M=src(main),S=src(sub);const sBy={};S.forEach(v=>sBy[v.v]=v);
-  const hl=new Set(LS.get(hlKey(),[]));
+  const mk=getMarks();const cls=v=>mk[v]?' '+mk[v]:'';
   let html=`<div class="chtitle">${bk.kr} ${c}장</div>`;
   const H=(t,cls='')=>showHead&&t?`<div class="h ${cls}">${esc(t)}</div>`:'';
   if(sub&&sBy[0]&&!M.some(v=>v.v===0)){const v=sBy[0];html+=H(v.h,'en')+`<div class="v v0" data-v="0"><span class="n">0</span><span class="t"><span class="sub serif sup">${esc(v.t)}</span></span></div>`}
@@ -355,11 +362,18 @@ function renderChapter(){
     let t=esc(v.t);
     if(v.hm)t=t.replace(' ¶ ',showHead?`</span><span class="h hm">${esc(v.hm)}</span><span>`:' ');else t=t.replace(' ¶ ',' ');
     const isSup=v.v===0;
-    html+=`<div class="v${hl.has(v.v)?' hl':''}${isSup?' v0':''}" data-v="${v.v}"><span class="n">${v.vl||v.v}</span><span class="t"><span class="${isSup?'sup':''}">${t}</span>${s?`<span class="sub${sub==='en'?' serif':''}">${esc(s.t)}</span>`:''}</span></div>`;
+    html+=`<div class="v${cls(v.v)}${isSup?' v0':''}" data-v="${v.v}"><span class="n">${v.vl||v.v}</span><span class="t"><span class="${isSup?'sup':''}">${t}</span>${s?`<span class="sub${sub==='en'?' serif':''}">${esc(s.t)}</span>`:''}</span></div>`;
   }
   $('#verses').innerHTML=html;
 }
-$('#verses').addEventListener('click',e=>{const p=e.target.closest('.v');if(!p||p.dataset.v==='0')return;const v=+p.dataset.v;const arr=new Set(LS.get(hlKey(),[]));if(arr.has(v)){arr.delete(v);p.classList.remove('hl')}else{arr.add(v);p.classList.add('hl')}LS.set(hlKey(),[...arr])});
+function closeMk(){const t=$('#verses .mk');if(t)t.remove();document.querySelectorAll('.v.sel').forEach(x=>x.classList.remove('sel'))}
+$('#verses').addEventListener('click',e=>{
+  const btn=e.target.closest('.mk button');
+  if(btn){const p=btn.closest('.mk').previousElementSibling;const v=+p.dataset.v;const m=getMarks();const k=btn.dataset.k;p.classList.remove('hl','ul');if(k==='x')delete m[v];else{m[v]=k;p.classList.add(k)}LS.set(hlKey(),m);closeMk();return}
+  const p=e.target.closest('.v');if(!p||p.dataset.v==='0'){closeMk();return}
+  const was=p.classList.contains('sel');closeMk();if(was)return;
+  p.classList.add('sel');const t=document.createElement('div');t.className='mk';t.innerHTML='<button class="b-hl" data-k="hl">형광펜</button><button class="b-ul" data-k="ul">빨간 줄</button><button data-k="x">지우기</button>';p.after(t);
+});
 $('#chPrev').onclick=()=>{let {b,c}=cur;if(c>1)c--;else if(b>0){b--;c=books[b].ch}else return;openChapter(b,c)};
 $('#chNext').onclick=()=>{let {b,c}=cur;if(c<books[b].ch)c++;else if(b<65){b++;c=1}else return;openChapter(b,c)};
 (function(){let x0=null,y0=null;const el=$('#reader');
@@ -385,7 +399,7 @@ $('#refQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const r=pars
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
-  showTab(LS.get('tab','hymn'));
+  showTab(LS.get('tab','bible'));
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
