@@ -1,5 +1,5 @@
 // 오프라인 캐시: 앱 껍데기는 네트워크 우선, 데이터·악보 이미지는 캐시 우선
-const VER = 'v1';
+const VER = 'v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './data/books.json', './data/hymns.json'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open('shell-' + VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
