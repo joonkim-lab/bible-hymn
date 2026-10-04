@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="성경찬송">
+<meta name="apple-mobile-web-app-title" content="준킴 성경">
 <meta name="theme-color" content="#ffffff">
 <meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-180.png">
-<title>성경찬송</title>
+<title>준킴 성경</title>
 <style>
 :root{
   --bg:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --tint:#0a66c2;
@@ -215,6 +215,8 @@ input[type=range]{accent-color:var(--tint)}
     <div class="fsrow"><button class="icon" id="fsMinus" aria-label="글자 작게">A−</button><input type="range" id="fsRange" min="0" max="6" step="1" class="grow"><button class="icon" id="fsPlus" aria-label="글자 크게">A+</button></div>
     <div class="fsprev" id="fsPrev">태초에 하나님이 천지를 창조하시니라</div>
     <div class="row" style="padding:4px 16px 20px;justify-content:space-between"><span class="small">소제목 표시</span><label class="sw"><input type="checkbox" id="optHead" checked><span></span></label></div>
+    <div class="sec">인터넷 없이 쓰기</div>
+    <div style="padding:0 16px 20px"><button class="tint wide" id="dlAll">전체 내려받기 (성경·찬송가 약 45MB)</button><div class="small" id="dlMsg" style="padding-top:6px;text-align:center"></div></div>
   </div>
 </div>
 
@@ -426,6 +428,25 @@ function parseRef(q){
   return {b,c:m[2]?+m[2]:1,v:m[3]?+m[3]:null};
 }
 $('#refQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const r=parseRef(e.target.value);e.target.blur();if(!r){e.target.style.borderColor='#e33';setTimeout(()=>e.target.style.borderColor='',800);return}const ch=Math.min(Math.max(1,r.c),books[r.b].ch);closeSheets();openChapter(r.b,ch,r.v);e.target.value=''});
+
+/* ---------- 전체 내려받기 (오프라인용) ---------- */
+let dlBusy=false;
+function dlPaint(){const d=LS.get('dlDone',null);if(!dlBusy)$('#dlMsg').textContent=d?`내려받기 완료 (${d}) · 인터넷 없이도 전부 볼 수 있어요`:'와이파이에서 한 번만 받아 두면 인터넷 없이도 전부 볼 수 있어요'}
+dlPaint();
+$('#dlAll').onclick=async()=>{
+  if(dlBusy)return;
+  if(!('serviceWorker' in navigator)||!navigator.serviceWorker.controller){$('#dlMsg').textContent='앱을 완전히 닫았다가 다시 연 뒤 눌러 주세요';return}
+  const urls=[];
+  for(let i=0;i<66;i++){urls.push('data/kr/'+i+'.json','data/en/'+i+'.json')}
+  for(let n=1;n<=645;n++)urls.push('hymn/'+String(n).padStart(3,'0')+'.webp');
+  dlBusy=true;$('#dlAll').disabled=true;let done=0,fail=0,idx=0;const total=urls.length;
+  const tick=()=>{$('#dlMsg').textContent=`받는 중… ${done} / ${total}`+(fail?` (실패 ${fail})`:'')};tick();
+  async function worker(){while(idx<urls.length){const u=urls[idx++];try{const r=await fetch(u);if(!r.ok)throw 0;await r.arrayBuffer()}catch(e){fail++}done++;if(done%5===0||done===total)tick()}}
+  await Promise.all(Array.from({length:6},worker));
+  dlBusy=false;$('#dlAll').disabled=false;
+  if(fail){$('#dlMsg').textContent=`${total-fail}개 받음, ${fail}개 실패 · 다시 누르면 실패한 것만 이어서 받아요`}
+  else{const t=new Date();LS.set('dlDone',`${t.getMonth()+1}월 ${t.getDate()}일`);dlPaint()}
+};
 
 /* ---------- 시작 ---------- */
 (async function init(){
