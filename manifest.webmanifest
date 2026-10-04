@@ -1,6 +1,6 @@
 {
-  "name": "성경찬송",
-  "short_name": "성경찬송",
+  "name": "준킴 성경",
+  "short_name": "준킴 성경",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
