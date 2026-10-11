@@ -322,7 +322,8 @@ function layoutTwo(on){
     if(s2>s1*1.15){
       two=true;const [a,b]=box.querySelectorAll('.half'),[ia,ib]=box.querySelectorAll('img');
       ia.src=ib.src=img.src;ia.style.width=ib.style.width=(w0*s2)+'px';
-      a.style.height=(y*s2)+'px';b.style.height=((h0-y)*s2)+'px';b.style.marginTop=(off*s2)+'px';ib.style.marginTop=(-y*s2)+'px';
+      a.style.height=(y*s2)+'px';b.style.height=((h0-y)*s2)+'px';b.style.marginTop=(off*s2)+'px';
+      const lh=y*s2,rb=(off+h0-y)*s2;box.style.paddingTop=Math.max(0,Math.min((H-lh)/2,H-rb))+'px';ib.style.marginTop=(-y*s2)+'px';
     }
   }
   v.classList.toggle('two',two);box.classList.toggle('hidden',!two);
@@ -498,7 +499,7 @@ $('#dlAll').onclick=async()=>{
 (async function init(){
   try{[books,hymns]=await Promise.all([getJSON('data/books.json'),getJSON('data/hymns.json')])}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
   buildHymnIdx();buildToc();
-  try{hymnSplit=await getJSON('data/split2.json')}catch(_){}
+  try{hymnSplit=await getJSON('data/split3.json')}catch(_){}
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
