@@ -51,6 +51,15 @@ nav.tabs button.on{color:var(--tint)}
 .zoomwrap{background:#fff}
 #hymnView .cap{padding:8px 14px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between}
 .zoomwrap{width:100%;overflow:auto;touch-action:pan-x pan-y pinch-zoom}
+/* 한 화면 맞춤: 악보 한 장이 스크롤 없이 화면 높이에 들어오게 (아이패드 기본) */
+#hymnView.fit .zoomwrap{display:flex;justify-content:center}
+#hymnView.fit .zoomwrap img{width:auto;max-width:100%;height:var(--hymnH,80vh);object-fit:contain}
+#hymnView.fit .chapnav{padding:6px 16px 8px}
+.hymn2{display:flex;justify-content:center;gap:var(--gap2,16px);background:#fff;padding-top:2px}
+.hymn2 .half{overflow:hidden;background:#fff}
+.hymn2 .half img{display:block;max-width:none;height:auto}
+#hymnView.two .zoomwrap{display:none}
+.fitbtn{font-size:13px;padding:4px 10px;margin-left:8px;white-space:nowrap}
 /* bible */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;padding:12px}
 .grid button{padding:12px 4px;font-size:15px}
@@ -161,8 +170,9 @@ input[type=range]{accent-color:var(--tint)}
   </header>
   <div id="hymnList"></div>
   <div id="hymnView" class="hidden">
-    <div class="cap"><span id="hymnCapL"></span><span id="hymnCapR"></span></div>
+    <div class="cap"><span id="hymnCapL"></span><span><span id="hymnCapR"></span><button class="fitbtn" id="hymnFit">한 화면</button></span></div>
     <div class="zoomwrap"><img id="hymnImg" alt=""></div>
+    <div class="hymn2 hidden" id="hymn2"><div class="half"><img alt=""></div><div class="half"><img alt=""></div></div>
 
     <div class="chapnav"><button id="hymnPrev">‹ 이전 장</button><button id="hymnNext">다음 장 ›</button></div>
   </div>
@@ -287,10 +297,46 @@ function openHymn(n){
   $('#hymnCapL').textContent=`${n}장 · ${h.t}`;$('#hymnCapR').textContent=(h.cat||'')+(h.tong?' · 통 '+h.tong:'');
   $('#hymnList').classList.add('hidden');$('#hymnView').classList.remove('hidden');$('#hymnBack').classList.remove('hidden');
   $('#hymnPrev').disabled=n<=1;$('#hymnNext').disabled=n>=645;
-  LS.set('hymn',n);window.scrollTo(0,0);
+  LS.set('hymn',n);applyFit();window.scrollTo(0,0);
   // 다음 장 미리 받기
   const pre=new Image();pre.src='hymn/'+String(Math.min(645,n+1)).padStart(3,'0')+'.webp';
 }
+/* 악보 보기 방식: 태블릿은 '한 화면'(높이 맞춤), 폰은 '폭 맞춤'이 기본. 버튼으로 바꾸면 그 기기에 기억 */
+let hymnFit=LS.get('hymnFit',null);
+const isTablet=()=>Math.min(window.innerWidth,window.innerHeight)>=700;
+function sizeHymn(){
+  const v=$('#hymnView');if(v.classList.contains('hidden'))return;
+  const used=$('#pgHymn header').offsetHeight+v.querySelector('.cap').offsetHeight+v.querySelector('.chapnav').offsetHeight+document.querySelector('nav.tabs').offsetHeight;
+  document.documentElement.style.setProperty('--hymnH',Math.max(300,window.innerHeight-used-4)+'px');
+}
+/* 긴 악보(3~4단 이상)는 가로 화면에서 단 사이를 잘라 왼쪽·오른쪽 두 쪽으로 펼침 */
+let hymnSplit={};
+function layoutTwo(on){
+  const v=$('#hymnView'),img=$('#hymnImg'),box=$('#hymn2');
+  const y=hymnSplit[curHymn],w0=img.naturalWidth,h0=img.naturalHeight;
+  let two=false;
+  if(on&&y&&w0&&window.innerWidth>window.innerHeight){
+    const H=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hymnH'))||600;
+    const W=v.clientWidth-24,gap=16;
+    const s1=Math.min(W/w0,H/h0),s2=Math.min((W-gap)/2/w0,H/Math.max(y,h0-y));
+    if(s2>s1*1.15){
+      two=true;const [a,b]=box.querySelectorAll('.half'),[ia,ib]=box.querySelectorAll('img');
+      ia.src=ib.src=img.src;ia.style.width=ib.style.width=(w0*s2)+'px';
+      a.style.height=(y*s2)+'px';b.style.height=((h0-y)*s2)+'px';ib.style.marginTop=(-y*s2)+'px';
+    }
+  }
+  v.classList.toggle('two',two);box.classList.toggle('hidden',!two);
+}
+function applyFit(){
+  const on=hymnFit===null?isTablet():hymnFit;
+  $('#hymnView').classList.toggle('fit',on);$('#hymnFit').textContent=on?'폭 맞춤':'한 화면';
+  if(on)sizeHymn();
+  layoutTwo(on);
+}
+$('#hymnImg').addEventListener('load',()=>applyFit());
+$('#hymnFit').onclick=()=>{hymnFit=!$('#hymnView').classList.contains('fit');LS.set('hymnFit',hymnFit);applyFit();window.scrollTo(0,0)};
+window.addEventListener('resize',()=>{applyFit()});
+window.addEventListener('orientationchange',()=>setTimeout(applyFit,300));
 function closeHymn(){curHymn=null;$('#hymnView').classList.add('hidden');$('#hymnList').classList.remove('hidden');$('#hymnBack').classList.add('hidden');LS.set('hymn',null);$('#hymnQ').focus()}
 $('#hymnBack').onclick=closeHymn;
 $('#hymnPrev').onclick=()=>curHymn>1&&openHymn(curHymn-1);
@@ -452,6 +498,7 @@ $('#dlAll').onclick=async()=>{
 (async function init(){
   try{[books,hymns]=await Promise.all([getJSON('data/books.json'),getJSON('data/hymns.json')])}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
   buildHymnIdx();buildToc();
+  try{hymnSplit=await getJSON('data/split.json')}catch(_){}
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
