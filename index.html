@@ -55,7 +55,7 @@ nav.tabs button.on{color:var(--tint)}
 #hymnView.fit .zoomwrap{display:flex;justify-content:center}
 #hymnView.fit .zoomwrap img{width:auto;max-width:100%;height:var(--hymnH,80vh);object-fit:contain}
 #hymnView.fit .chapnav{padding:6px 16px 8px}
-.hymn2{display:flex;justify-content:center;gap:var(--gap2,16px);background:#fff;padding-top:2px}
+.hymn2{display:flex;align-items:flex-start;justify-content:center;gap:var(--gap2,16px);background:#fff;padding-top:2px}
 .hymn2 .half{overflow:hidden;background:#fff}
 .hymn2 .half img{display:block;max-width:none;height:auto}
 #hymnView.two .zoomwrap{display:none}
@@ -313,16 +313,16 @@ function sizeHymn(){
 let hymnSplit={};
 function layoutTwo(on){
   const v=$('#hymnView'),img=$('#hymnImg'),box=$('#hymn2');
-  const y=hymnSplit[curHymn],w0=img.naturalWidth,h0=img.naturalHeight;
+  const sp=hymnSplit[curHymn],y=Array.isArray(sp)?sp[0]:sp,off=Array.isArray(sp)?sp[1]:0,w0=img.naturalWidth,h0=img.naturalHeight;
   let two=false;
   if(on&&y&&w0&&window.innerWidth>window.innerHeight){
     const H=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hymnH'))||600;
     const W=v.clientWidth-24,gap=16;
-    const s1=Math.min(W/w0,H/h0),s2=Math.min((W-gap)/2/w0,H/Math.max(y,h0-y));
+    const s1=Math.min(W/w0,H/h0),s2=Math.min((W-gap)/2/w0,H/Math.max(y,h0-y+off));
     if(s2>s1*1.15){
       two=true;const [a,b]=box.querySelectorAll('.half'),[ia,ib]=box.querySelectorAll('img');
       ia.src=ib.src=img.src;ia.style.width=ib.style.width=(w0*s2)+'px';
-      a.style.height=(y*s2)+'px';b.style.height=((h0-y)*s2)+'px';ib.style.marginTop=(-y*s2)+'px';
+      a.style.height=(y*s2)+'px';b.style.height=((h0-y)*s2)+'px';b.style.marginTop=(off*s2)+'px';ib.style.marginTop=(-y*s2)+'px';
     }
   }
   v.classList.toggle('two',two);box.classList.toggle('hidden',!two);
@@ -498,7 +498,7 @@ $('#dlAll').onclick=async()=>{
 (async function init(){
   try{[books,hymns]=await Promise.all([getJSON('data/books.json'),getJSON('data/hymns.json')])}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
   buildHymnIdx();buildToc();
-  try{hymnSplit=await getJSON('data/split.json')}catch(_){}
+  try{hymnSplit=await getJSON('data/split2.json')}catch(_){}
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
