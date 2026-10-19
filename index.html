@@ -281,7 +281,7 @@ body.reading #reader{padding-bottom:64px}
     <div class="row" style="padding:4px 16px 20px;justify-content:space-between"><span class="small">소제목 표시</span><label class="sw"><input type="checkbox" id="optHead" checked><span></span></label></div>
     <div class="sec">기기 동기화</div>
     <div style="padding:0 16px 16px">
-      <div id="syncIn" class="opts" style="padding:0"><input type="email" id="syncEmail" placeholder="이메일" autocomplete="username" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><input type="password" id="syncPw" placeholder="비밀번호" autocomplete="current-password" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><button class="tint wide" id="syncGo">로그인</button></div>
+      <div id="syncIn" class="opts" style="padding:0"><input type="email" id="syncEmail" placeholder="이메일" autocomplete="username" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><input type="password" id="syncPw" placeholder="비밀번호" autocomplete="current-password" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><div class="row" style="gap:6px"><button class="tint grow" id="syncGo" style="padding:12px;font-size:16px">로그인</button><button class="grow" id="syncNew" style="padding:12px;font-size:16px">처음이면 가입</button></div><button id="syncReset" style="background:transparent;color:var(--muted);font-size:13px;padding:4px">비밀번호를 잊었어요</button></div>
       <div id="syncOut" class="hidden"><button class="wide" id="syncLogout">로그아웃</button></div>
       <div class="small" id="syncMsg" style="padding-top:6px;text-align:center"></div>
     </div>
@@ -675,7 +675,7 @@ async function fbInit(){
     const base=`https://www.gstatic.com/firebasejs/${FB_V}/`;
     const [app,auth,fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
     const a=app.initializeApp(FB_CFG),au=auth.getAuth(a);
-    fb={auth:au,db:fs.getFirestore(a),doc:fs.doc,setDoc:fs.setDoc,onSnapshot:fs.onSnapshot,serverTimestamp:fs.serverTimestamp,signIn:auth.signInWithEmailAndPassword,signOut:auth.signOut};
+    fb={auth:au,db:fs.getFirestore(a),doc:fs.doc,setDoc:fs.setDoc,onSnapshot:fs.onSnapshot,serverTimestamp:fs.serverTimestamp,signIn:auth.signInWithEmailAndPassword,signUp:auth.createUserWithEmailAndPassword,reset:auth.sendPasswordResetEmail,signOut:auth.signOut};
     let unsub=null;
     auth.onAuthStateChanged(au,u=>{
       fbUser=u;if(unsub){unsub();unsub=null}
@@ -695,7 +695,19 @@ $('#syncGo').onclick=async()=>{
   if(!fb){paintSync();return}
   const e=$('#syncEmail').value.trim(),p=$('#syncPw').value;if(!e||!p){$('#syncMsg').textContent='이메일과 비밀번호를 넣어 주세요';return}
   paintSync('loading');
-  try{await fb.signIn(fb.auth,e,p);$('#syncPw').value=''}catch(err){$('#syncMsg').textContent='로그인이 안 됐어요. 이메일과 비밀번호를 다시 확인해 주세요'}
+  try{await fb.signIn(fb.auth,e,p);$('#syncPw').value=''}catch(err){$('#syncMsg').textContent=fbErr(err.code)||'로그인이 안 됐어요. 이메일과 비밀번호를 다시 확인하거나, 처음이면 「처음이면 가입」을 눌러 주세요'}
+};
+const fbErr=c=>({'auth/email-already-in-use':'이미 가입된 이메일이에요. 「로그인」을 눌러 주세요','auth/weak-password':'비밀번호는 6자 이상으로 해 주세요','auth/invalid-email':'이메일 주소를 다시 확인해 주세요','auth/network-request-failed':'인터넷 연결을 확인해 주세요','auth/too-many-requests':'잠시 뒤에 다시 해 주세요'})[c];
+$('#syncNew').onclick=async()=>{
+  if(!fb){paintSync();return}
+  const e=$('#syncEmail').value.trim(),p=$('#syncPw').value;if(!e||!p){$('#syncMsg').textContent='쓰실 이메일과 비밀번호(6자 이상)를 넣고 눌러 주세요';return}
+  paintSync('loading');
+  try{await fb.signUp(fb.auth,e,p);$('#syncPw').value=''}catch(err){$('#syncMsg').textContent=fbErr(err.code)||'가입이 안 됐어요. 다시 해 주세요'}
+};
+$('#syncReset').onclick=async()=>{
+  if(!fb){paintSync();return}
+  const e=$('#syncEmail').value.trim();if(!e){$('#syncMsg').textContent='위에 이메일을 넣고 다시 눌러 주세요';return}
+  try{await fb.reset(fb.auth,e);$('#syncMsg').textContent='비밀번호를 다시 정하는 메일을 보냈어요. 메일함을 확인해 주세요'}catch(err){$('#syncMsg').textContent=fbErr(err.code)||'메일을 보내지 못했어요'}
 };
 $('#syncLogout').onclick=()=>{if(fb)fb.signOut(fb.auth)};
 
