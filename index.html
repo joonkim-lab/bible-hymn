@@ -279,6 +279,12 @@ body.reading #reader{padding-bottom:64px}
     <div class="fsrow"><button class="icon" id="fsMinus" aria-label="글자 작게">A−</button><input type="range" id="fsRange" min="0" max="6" step="1" class="grow"><button class="icon" id="fsPlus" aria-label="글자 크게">A+</button></div>
     <div class="fsprev" id="fsPrev">태초에 하나님이 천지를 창조하시니라</div>
     <div class="row" style="padding:4px 16px 20px;justify-content:space-between"><span class="small">소제목 표시</span><label class="sw"><input type="checkbox" id="optHead" checked><span></span></label></div>
+    <div class="sec">기기 동기화</div>
+    <div style="padding:0 16px 16px">
+      <div id="syncIn" class="opts" style="padding:0"><input type="email" id="syncEmail" placeholder="이메일" autocomplete="username" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><input type="password" id="syncPw" placeholder="비밀번호" autocomplete="current-password" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><button class="tint wide" id="syncGo">로그인</button></div>
+      <div id="syncOut" class="hidden"><button class="wide" id="syncLogout">로그아웃</button></div>
+      <div class="small" id="syncMsg" style="padding-top:6px;text-align:center"></div>
+    </div>
     <div class="sec">인터넷 없이 쓰기</div>
     <div style="padding:0 16px 20px"><button class="tint wide" id="dlAll">전체 내려받기 (성경·찬송가 약 45MB)</button><div class="small" id="dlMsg" style="padding-top:6px;text-align:center"></div></div>
   </div>
@@ -627,6 +633,72 @@ function renderStats(){
   $('#stCal').innerHTML=h;
 }
 
+/* ---------- 기기 동기화 (Firebase) ----------
+   통독 체크(pd:*), 읽은 날(readLog), 형광펜·줄(hl:*)만 올림. 인터넷이 없어도 앱은 그대로 동작하고, 다시 연결되면 맞춰짐. */
+const FB_CFG={apiKey:"AIzaSyBiqzeuZOnToyTnYiaPslHVdssxomH3VAY",authDomain:"joonkim-bible.firebaseapp.com",projectId:"joonkim-bible",storageBucket:"joonkim-bible.firebasestorage.app",messagingSenderId:"651094148499",appId:"1:651094148499:web:f7f2f156f0feb5e7359466"};
+const FB_V='10.12.2';
+const isSyncKey=k=>k.startsWith('pd:')||k.startsWith('hl:')||k==='readLog';
+let fb=null,fbUser=null,fbPushT=null,fbState='off';
+function dirtyGet(){try{return JSON.parse(localStorage.getItem('syncDirty')||'{}')}catch(e){return {}}}
+function dirtySet(d){try{localStorage.setItem('syncDirty',JSON.stringify(d))}catch(e){}}
+function markDirty(k){const d=dirtyGet();d[k]=1;dirtySet(d);schedulePush()}
+function schedulePush(){clearTimeout(fbPushT);fbPushT=setTimeout(pushDirty,800)}
+async function pushDirty(){
+  if(!fb||!fbUser)return;const d=dirtyGet(),keys=Object.keys(d);if(!keys.length)return;
+  const s={};for(const k of keys){const raw=localStorage.getItem(k);s[k]=raw==null?null:raw}
+  try{await fb.setDoc(fb.doc(fb.db,'users',fbUser.uid),{s,at:fb.serverTimestamp()},{merge:true});
+    const now=dirtyGet();for(const k of keys)if(localStorage.getItem(k)===s[k]||(s[k]===null&&localStorage.getItem(k)==null))delete now[k];dirtySet(now);paintSync('on')}
+  catch(e){paintSync('err')}
+}
+function applyRemote(s){
+  if(!s)return;const d=dirtyGet();let changed=false;
+  for(const [k,v] of Object.entries(s)){
+    if(!isSyncKey(k)||d[k])continue;
+    if(k==='readLog'){let a=[],b=[];try{a=JSON.parse(localStorage.getItem(k)||'[]');b=JSON.parse(v||'[]')}catch(e){}
+      const u=[...new Set([...a,...b])].sort();const js=JSON.stringify(u);
+      if(js!==localStorage.getItem(k)){localStorage.setItem(k,js);changed=true}if(u.length!==b.length)markDirty(k);continue}
+    if(v===null){if(localStorage.getItem(k)!=null){localStorage.removeItem(k);changed=true}}
+    else if(localStorage.getItem(k)!==v){localStorage.setItem(k,v);changed=true}
+  }
+  if(changed){try{if($('#pgPlan').classList.contains('on'))renderPlan();if(cur&&$('#pgBible').classList.contains('on')&&!$('#verses .mk'))renderChapter();if(reading)paintStrip()}catch(e){}}
+}
+function paintSync(st){
+  fbState=st||fbState;const m=$('#syncMsg');if(!m)return;
+  const on=!!fbUser;$('#syncIn').classList.toggle('hidden',on);$('#syncOut').classList.toggle('hidden',!on);
+  if(on)m.textContent=fbState==='err'?`${fbUser.email} · 지금은 연결이 안 돼요. 연결되면 자동으로 맞춰져요`:`${fbUser.email} · 아이폰·아이패드 기록이 함께 맞춰져요`;
+  else if(fbState==='loading')m.textContent='연결 중…';
+  else if(!fb)m.textContent='인터넷이 연결되면 로그인할 수 있어요';
+  else m.textContent='한 번 로그인하면 기기마다 기록이 같아져요';
+}
+async function fbInit(){
+  try{
+    const base=`https://www.gstatic.com/firebasejs/${FB_V}/`;
+    const [app,auth,fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+    const a=app.initializeApp(FB_CFG),au=auth.getAuth(a);
+    fb={auth:au,db:fs.getFirestore(a),doc:fs.doc,setDoc:fs.setDoc,onSnapshot:fs.onSnapshot,serverTimestamp:fs.serverTimestamp,signIn:auth.signInWithEmailAndPassword,signOut:auth.signOut};
+    let unsub=null;
+    auth.onAuthStateChanged(au,u=>{
+      fbUser=u;if(unsub){unsub();unsub=null}
+      if(u){
+        if(!localStorage.getItem('syncInit:'+u.uid)){const d=dirtyGet();for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSyncKey(k))d[k]=1}dirtySet(d);localStorage.setItem('syncInit:'+u.uid,'1')}
+        unsub=fb.onSnapshot(fb.doc(fb.db,'users',u.uid),snap=>{applyRemote((snap.data()||{}).s);paintSync('on')},()=>paintSync('err'));
+        pushDirty();
+      }
+      paintSync(u?'on':'off');
+    });
+  }catch(e){fb=null;paintSync('off')}
+}
+(function(){const set=LS.set;LS.set=function(k,v){set.call(LS,k,v);if(isSyncKey(k))markDirty(k)}})();
+window.addEventListener('online',schedulePush);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedulePush()});
+$('#syncGo').onclick=async()=>{
+  if(!fb){paintSync();return}
+  const e=$('#syncEmail').value.trim(),p=$('#syncPw').value;if(!e||!p){$('#syncMsg').textContent='이메일과 비밀번호를 넣어 주세요';return}
+  paintSync('loading');
+  try{await fb.signIn(fb.auth,e,p);$('#syncPw').value=''}catch(err){$('#syncMsg').textContent='로그인이 안 됐어요. 이메일과 비밀번호를 다시 확인해 주세요'}
+};
+$('#syncLogout').onclick=()=>{if(fb)fb.signOut(fb.auth)};
+
 /* ---------- 전체 내려받기 (오프라인용) ---------- */
 let dlBusy=false;
 function dlPaint(){const d=LS.get('dlDone',null);if(!dlBusy)$('#dlMsg').textContent=d?`내려받기 완료 (${d}) · 인터넷 없이도 전부 볼 수 있어요`:'와이파이에서 한 번만 받아 두면 인터넷 없이도 전부 볼 수 있어요'}
@@ -652,6 +724,7 @@ $('#dlAll').onclick=async()=>{
   buildHymnIdx();buildToc();
   try{hymnSplit=await getJSON('data/split3.json')}catch(_){}
   try{plans=await getJSON('data/plans-v1.json')}catch(_){}
+  paintSync();fbInit();
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
