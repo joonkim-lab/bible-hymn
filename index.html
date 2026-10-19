@@ -15,7 +15,7 @@
 <style>
 :root{
   --bg:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --tint:#0a66c2;
-  --hl:#e6ff8f; --ul:#e0342c; --head:#3a3a3c; --chip:#f2f2f7;
+  --hl:#e6ff8f; --pu:#e4d4ff; --ul:#e0342c; --ok:#2f9e57; --head:#3a3a3c; --chip:#f2f2f7;
   --top:env(safe-area-inset-top,0px); --bot:env(safe-area-inset-bottom,0px);
   --fs:18px;
 }
@@ -72,17 +72,17 @@ nav.tabs button.on{color:var(--tint)}
 .hidden{display:none!important}
 html[data-theme=dark]{color-scheme:dark}
 html[data-theme=light]{color-scheme:light}
-html[data-theme=dark]{--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
+html[data-theme=dark]{--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--pu:#cdb2ff;--ok:#4cc277;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
 html[data-theme=dark] header{background:rgba(0,0,0,.92)}
 html[data-theme=dark] .seg button.on{background:#3a3a3c}
 html[data-theme=dark] .v .sub{color:#bcc9e8}
-html[data-theme=dark] .v.hl{color:#111}.v.hl .sub{color:#2b3a5c}.v.hl .n{color:#0a4fa0}
+html[data-theme=dark] .v.hl,html[data-theme=dark] .v.pu{color:#111}.v.hl .sub,.v.pu .sub{color:#2b3a5c}.v.hl .n,.v.pu .n{color:#0a4fa0}
 @media (prefers-color-scheme: dark){
-html:not([data-theme=light]){--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
+html:not([data-theme=light]){--bg:#000;--fg:#f5f5f7;--muted:#a1a1a6;--line:#2c2c2e;--tint:#5eaaff;--hl:#d4f56a;--pu:#cdb2ff;--ok:#4cc277;--ul:#ff5a4e;--head:#e5e5ea;--chip:#1c1c1e}
 html:not([data-theme=light]) header{background:rgba(0,0,0,.92)}
 html:not([data-theme=light]) .seg button.on{background:#3a3a3c}
 html:not([data-theme=light]) .v .sub{color:#bcc9e8}
-html:not([data-theme=light]) .v.hl{color:#111}.v.hl .sub{color:#2b3a5c}.v.hl .n{color:#0a4fa0}
+html:not([data-theme=light]) .v.hl,html:not([data-theme=light]) .v.pu{color:#111}.v.hl .sub,.v.pu .sub{color:#2b3a5c}.v.hl .n,.v.pu .n{color:#0a4fa0}
 }
 
 /* ---- 성경 새 UI ---- */
@@ -99,12 +99,13 @@ header.bh{padding:6px 8px}
 .h.hm{display:block;margin:10px 0 6px;font-size:clamp(16px,calc(var(--fs) * 1),36px)}
 .v{display:grid;grid-template-columns:auto 1fr;margin:0 -6px 6px;padding:3px 6px;border-radius:8px}
 .v.hl{background:var(--hl)}
+.v.pu{background:var(--pu)}
 .v.ul .t>span:first-child,.v.ul .sub{text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:2px;text-underline-offset:.22em;text-decoration-skip-ink:none;-webkit-text-decoration-skip:none}
 .v.ul .sub{text-decoration-thickness:1.5px}
 .v.sel{outline:2px solid var(--tint);outline-offset:-2px}
 .mk{display:flex;gap:6px;justify-content:center;padding:6px 0 10px}
 .mk button{font-size:14px;padding:8px 14px}
-.mk .b-hl{background:var(--hl);color:#111}.mk .b-ul{color:var(--ul);text-decoration:underline;text-decoration-thickness:2px}
+.mk{flex-wrap:wrap}.mk .b-hl{background:var(--hl);color:#111}.mk .b-pu{background:var(--pu);color:#111}.mk button.on{box-shadow:inset 0 0 0 2px var(--fg)}.mk .b-ul{color:var(--ul);text-decoration:underline;text-decoration-thickness:2px}
 .v .n{font-size:.62em;color:var(--tint);font-weight:700;padding:.45em .5em 0 0;min-width:1.4em;line-height:1}
 .v .t{min-width:0;font-size:inherit}
 .v .sub{display:block;margin:3px 0 2px .9em;color:#4a5a7a;font-size:.9em;line-height:1.5}
@@ -155,6 +156,39 @@ input[type=range]{accent-color:var(--tint)}
 .sw span:before{content:"";position:absolute;width:24px;height:24px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
 .sw input:checked+span{background:#34c759}
 .sw input:checked+span:before{transform:translateX(18px)}
+
+/* ---- 통독 ---- */
+.pchips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 4px;-webkit-overflow-scrolling:touch}
+.pchips button{flex:0 0 auto;font-size:14px;padding:7px 12px;border-radius:18px}
+.pchips button.on{background:var(--tint);color:#fff}
+.pday{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 0}
+.pday .ttl{text-align:center;flex:1}.pday b{font-size:21px;display:block}.pday small{color:var(--muted);font-size:13px}
+.pday button{width:40px;height:40px;border-radius:50%;padding:0;font-size:20px}
+.pbar{height:4px;background:var(--line);border-radius:2px;margin:14px 16px 4px}.pbar i{display:block;height:100%;background:var(--tint);border-radius:2px;width:0}
+.ppct{font-size:12px;color:var(--muted);padding:0 16px;font-variant-numeric:tabular-nums}
+.plist{list-style:none;margin:12px 0 0;padding:0;border-top:1px solid var(--line)}
+.plist li{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.plist .ref{flex:1;text-align:left;background:none;padding:0;font-size:18px;border-radius:0}
+.plist .ref:after{content:" ›";color:var(--muted)}
+.plist li.done .ref{color:var(--muted);text-decoration:line-through}
+.chk{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;padding:0;color:#fff;font-size:15px;flex:0 0 auto}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.pnote{font-size:13px;color:var(--muted);padding:12px 16px;text-align:center}
+.stat{margin:6px 14px 20px;padding:14px;border-radius:14px;background:var(--chip)}
+.stat h3{font-size:13px;color:var(--muted);margin:0 0 10px;font-weight:600}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.nums b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.nums span{font-size:11px;color:var(--muted)}
+.nums .fire b{color:var(--ok)}
+.cal,.calh{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calh{font-size:10px;color:var(--muted);text-align:center;margin-top:12px}
+.cal{margin-top:4px}.cal i{height:20px;border-radius:4px;background:var(--line)}
+.cal i.r{background:var(--ok)}.cal i.s{background:transparent;border:1px dashed var(--line)}.cal i.f{visibility:hidden}.cal i.t{outline:2px solid var(--tint);outline-offset:1px}
+.leg{font-size:11px;color:var(--muted);margin-top:8px}
+.strip{position:fixed;left:10px;right:10px;bottom:calc(64px + var(--bot));z-index:7;background:var(--fg);color:var(--bg);border-radius:14px;padding:8px 8px 8px 14px;display:flex;align-items:center;gap:8px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.strip .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip button{padding:8px 12px;font-size:14px;white-space:nowrap}
+.strip .go{background:var(--ok);color:#fff}.strip .x{background:transparent;color:var(--bg);padding:8px}
+body.reading #reader{padding-bottom:64px}
 </style>
 </head>
 <body>
@@ -189,9 +223,29 @@ input[type=range]{accent-color:var(--tint)}
   <div id="reader">
     <div id="verses"><div class="empty">위의 제목을 눌러 책과 장을 고르세요</div></div>
     <div class="chapnav"><button id="chPrev">‹ 이전 장</button><button id="chNext">다음 장 ›</button></div>
-    <div class="small" style="text-align:center;padding-bottom:16px">절을 누르면 형광펜 · 빨간 줄 · 지우기를 고를 수 있어요</div>
+    <div class="small" style="text-align:center;padding-bottom:16px">절을 누르면 형광펜 · 보라 · 빨간 줄 · 지우기를 고를 수 있어요</div>
   </div>
 </section>
+
+
+<!-- ============ 통독 ============ -->
+<section id="pgPlan" class="page">
+  <header><div class="row" style="min-height:36px"><b style="font-size:20px;padding-left:4px">통독</b></div></header>
+  <div class="pchips" id="pChips"></div>
+  <div class="pday"><button id="pPrev" aria-label="이전">‹</button><div class="ttl"><b id="pTitle"></b><small id="pSub"></small></div><button id="pNext" aria-label="다음">›</button></div>
+  <div class="pbar"><i id="pBar"></i></div><div class="ppct" id="pPct"></div>
+  <ul class="plist" id="pList"></ul>
+  <div class="pnote" id="pNote"></div>
+  <div class="stat">
+    <h3>나의 통독 현황</h3>
+    <div class="nums"><div class="fire"><b id="stStreak">0일</b><span>연속 읽음</span></div><div><b id="stMonth">0일</b><span id="stMonthL">이번 달 읽은 날</span></div><div><b id="stBest">0일</b><span>최장 연속</span></div></div>
+    <div class="calh"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>주일</span></div>
+    <div class="cal" id="stCal"></div>
+    <div class="leg">초록 = 읽은 날 · 점선 = 주일 (쉬어도 연속이 끊기지 않아요)</div>
+  </div>
+</section>
+
+<div class="strip hidden" id="strip"><span class="t" id="stripT"></span><button class="go" id="stripGo"></button><button class="x" id="stripX" aria-label="통독 닫기">✕</button></div>
 
 <!-- 목차 시트 -->
 <div class="sheet" id="shToc">
@@ -233,6 +287,7 @@ input[type=range]{accent-color:var(--tint)}
 <nav class="tabs">
   <button id="tabHymn" class="on"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>찬송가</button>
   <button id="tabBible"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M12 6v7M9.5 8.5h5"/></svg>성경</button>
+  <button id="tabPlan"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M8.5 12.5l2.5 2.5 4.5-5"/></svg>통독</button>
 </nav>
 
 <script>
@@ -245,11 +300,14 @@ async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(u);ret
 
 /* ---------- 탭 ---------- */
 function showTab(t){
-  $('#pgHymn').classList.toggle('on',t==='hymn');$('#pgBible').classList.toggle('on',t==='bible');
-  $('#tabHymn').classList.toggle('on',t==='hymn');$('#tabBible').classList.toggle('on',t==='bible');
+  $('#pgHymn').classList.toggle('on',t==='hymn');$('#pgBible').classList.toggle('on',t==='bible');$('#pgPlan').classList.toggle('on',t==='plan');
+  $('#tabHymn').classList.toggle('on',t==='hymn');$('#tabBible').classList.toggle('on',t==='bible');$('#tabPlan').classList.toggle('on',t==='plan');
+  $('#strip').classList.toggle('hidden',!(reading&&t==='bible'));document.body.classList.toggle('reading',!!(reading&&t==='bible'));
+  if(t==='plan')renderPlan();
   LS.set('tab',t);window.scrollTo(0,0);
 }
-$('#tabHymn').onclick=()=>showTab('hymn');$('#tabBible').onclick=()=>showTab('bible');
+$('#tabHymn').onclick=()=>showTab('hymn');$('#tabBible').onclick=()=>showTab('bible');$('#tabPlan').onclick=()=>showTab('plan');
+let reading=null;
 
 /* ---------- 한글 검색 유틸 (초성 검색 포함) ---------- */
 const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
@@ -453,10 +511,16 @@ function renderChapter(){
 function closeMk(){const t=$('#verses .mk');if(t)t.remove();document.querySelectorAll('.v.sel').forEach(x=>x.classList.remove('sel'))}
 $('#verses').addEventListener('click',e=>{
   const btn=e.target.closest('.mk button');
-  if(btn){const p=btn.closest('.mk').previousElementSibling;const v=+p.dataset.v;const m=getMarks();const k=btn.dataset.k;p.classList.remove('hl','ul');if(k==='x')delete m[v];else{m[v]=k;p.classList.add(k)}LS.set(hlKey(),m);closeMk();return}
+  if(btn){const p=btn.closest('.mk').previousElementSibling;const v=+p.dataset.v;const m=getMarks();const k=btn.dataset.k;
+    let set=new Set((m[v]||'').split(' ').filter(Boolean));
+    if(k==='x')set.clear();
+    else if(k==='ul'){set.has('ul')?set.delete('ul'):set.add('ul')}
+    else{const had=set.has(k);set.delete('hl');set.delete('pu');if(!had)set.add(k)}
+    p.classList.remove('hl','pu','ul');set.forEach(c=>p.classList.add(c));
+    if(set.size)m[v]=[...set].join(' ');else delete m[v];LS.set(hlKey(),m);closeMk();return}
   const p=e.target.closest('.v');if(!p||p.dataset.v==='0'){closeMk();return}
   const was=p.classList.contains('sel');closeMk();if(was)return;
-  p.classList.add('sel');const t=document.createElement('div');t.className='mk';t.innerHTML='<button class="b-hl" data-k="hl">형광펜</button><button class="b-ul" data-k="ul">빨간 줄</button><button data-k="x">지우기</button>';p.after(t);
+  p.classList.add('sel');const t=document.createElement('div');t.className='mk';const on=k=>p.classList.contains(k)?' on':'';t.innerHTML=`<button class="b-hl${on('hl')}" data-k="hl">형광펜</button><button class="b-pu${on('pu')}" data-k="pu">보라</button><button class="b-ul${on('ul')}" data-k="ul">빨간 줄</button><button data-k="x">지우기</button>`;p.after(t);
 });
 $('#chPrev').onclick=()=>{let {b,c}=cur;if(c>1)c--;else if(b>0){b--;c=books[b].ch}else return;openChapter(b,c)};
 $('#chNext').onclick=()=>{let {b,c}=cur;if(c<books[b].ch)c++;else if(b<65){b++;c=1}else return;openChapter(b,c)};
@@ -475,6 +539,93 @@ function parseRef(q){
   return {b,c:m[2]?+m[2]:1,v:m[3]?+m[3]:null};
 }
 $('#refQ').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const r=parseRef(e.target.value);e.target.blur();if(!r){e.target.style.borderColor='#e33';setTimeout(()=>e.target.style.borderColor='',800);return}const ch=Math.min(Math.max(1,r.c),books[r.b].ch);closeSheets();openChapter(r.b,ch,r.v);e.target.value=''});
+
+/* ---------- 통독 ---------- */
+let plans=[],planId=LS.get('plan','mc'),pView=null;
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const KDOW=['주일','월','화','수','목','금','토'];
+const plan=()=>plans.find(p=>p.id===planId)||plans[0];
+/* 맥체인: 날짜 → 표의 몇째 날 (2월 29일은 28일 분량을 한 번 더) */
+function mcIdx(d){const m=d.getMonth(),day=Math.min(d.getDate(),m===1?28:31);return Math.round((Date.UTC(2027,m,day)-Date.UTC(2027,0,1))/864e5)}
+function pDone(id){return LS.get('pd:'+id,{})}
+function dayKey(p,v){return p.kind==='date'?ymd(v):String(v)}
+function dayItems(p,v){return p.kind==='date'?p.days[mcIdx(v)]:p.days[v-1]}
+function dayFull(p,key,n){const d=pDone(p.id)[key];return !!d&&d.filter(Boolean).length>=n}
+function seqCurrent(p){for(let i=1;i<=p.days.length;i++){if(!dayFull(p,String(i),p.days[i-1].length))return i}return p.days.length}
+function segLabel(s){const b=books[s[0]].kr;if(s.length===5)return s[1]===s[2]?`${b} ${s[1]}:${s[3]}-${s[4]}`:`${b} ${s[1]}:${s[3]}-${s[2]}:${s[4]}`;return s[1]===s[2]?`${b} ${s[1]}`:`${b} ${s[1]}-${s[2]}`}
+function setCheck(p,key,i,val){
+  const all=pDone(p.id);const n=dayItems(p,p.kind==='date'?new Date(key+'T12:00'):+key).length;
+  const a=all[key]||Array(n).fill(0);a[i]=val?1:0;all[key]=a;LS.set('pd:'+p.id,all);
+  if(val){const log=LS.get('readLog',[]);const t=ymd(new Date());if(!log.includes(t)){log.push(t);LS.set('readLog',log)}}
+}
+function renderPlan(){
+  if(!plans.length||!books.length)return;
+  const p=plan();
+  $('#pChips').innerHTML=plans.map(x=>`<button data-id="${x.id}" class="${x.id===p.id?'on':''}">${x.name}</button>`).join('');
+  if(pView==null||pView.id!==p.id)pView={id:p.id,v:p.kind==='date'?new Date():seqCurrent(p)};
+  const v=pView.v,key=dayKey(p,v),items=dayItems(p,v),d=pDone(p.id)[key]||[];
+  const nDone=items.filter((_,i)=>d[i]).length;
+  if(p.kind==='date'){
+    const today=ymd(v)===ymd(new Date());
+    $('#pTitle').textContent=`${v.getMonth()+1}월 ${v.getDate()}일`+(today?'':` (${KDOW[v.getDay()]})`);
+    $('#pSub').textContent=(today?'오늘 · ':'')+`맥체인 ${mcIdx(v)+1}일째`;
+    const yr=v.getFullYear(),all=pDone(p.id);let full=0;for(const k in all)if(k.startsWith(yr+'-')&&all[k].filter(Boolean).length>=4)full++;
+    $('#pBar').style.width=Math.min(100,full/365*100)+'%';$('#pPct').textContent=`${yr}년 다 읽은 날 ${full}/365 · 오늘 ${nDone}/${items.length}`;
+  }else{
+    const cur=seqCurrent(p);
+    $('#pTitle').textContent=`${v}일차`;$('#pSub').textContent=v===cur?'이어서 읽을 곳':v<cur?'읽은 날':'앞으로 읽을 날';
+    let full=0;for(let i=1;i<=p.days.length;i++)if(dayFull(p,String(i),p.days[i-1].length))full++;
+    $('#pBar').style.width=(full/p.days.length*100)+'%';$('#pPct').textContent=`${p.name} · ${full}/${p.days.length}일 · ${Math.round(full/p.days.length*100)}%`;
+  }
+  $('#pPrev').disabled=p.kind==='seq'&&v<=1;$('#pNext').disabled=p.kind==='seq'&&v>=p.days.length;
+  $('#pList').innerHTML=items.map((s,i)=>`<li class="${d[i]?'done':''}"><button class="ref" data-i="${i}">${segLabel(s)}</button><button class="chk${d[i]?' on':''}" data-c="${i}" aria-label="읽음 표시">${d[i]?'✓':''}</button></li>`).join('');
+  $('#pNote').textContent=nDone===items.length?'오늘 분량을 다 읽었어요':'본문을 누르면 그 장이 바로 열려요';
+  renderStats();
+}
+$('#pChips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;planId=b.dataset.id;LS.set('plan',planId);pView=null;renderPlan()});
+$('#pPrev').onclick=()=>{const p=plan();if(p.kind==='date'){const d=new Date(pView.v);d.setDate(d.getDate()-1);pView.v=d}else pView.v=Math.max(1,pView.v-1);renderPlan()};
+$('#pNext').onclick=()=>{const p=plan();if(p.kind==='date'){const d=new Date(pView.v);d.setDate(d.getDate()+1);pView.v=d}else pView.v=Math.min(p.days.length,pView.v+1);renderPlan()};
+$('#pList').addEventListener('click',e=>{
+  const p=plan(),key=dayKey(p,pView.v),c=e.target.closest('.chk'),r=e.target.closest('.ref');
+  if(c){const i=+c.dataset.c,d=pDone(p.id)[key]||[];setCheck(p,key,i,!d[i]);renderPlan();return}
+  if(r)startReading(p,key,+r.dataset.i,0);
+});
+/* 읽는 중 띠: 여러 장이면 한 장씩 넘기고, 끝나면 읽음 표시 후 다음 본문으로 */
+function segChapters(s){const o=[];for(let c=s[1];c<=s[2];c++)o.push(c);return o}
+function startReading(p,key,i,ci){
+  const items=dayItems(p,p.kind==='date'?new Date(key+'T12:00'):+key),s=items[i],chs=segChapters(s);
+  reading={id:p.id,key,i,ci};
+  openChapter(s[0],chs[ci],s.length===5&&ci===0?s[3]:undefined);showTab('bible');paintStrip();
+}
+function paintStrip(){
+  if(!reading)return;const p=plans.find(x=>x.id===reading.id),items=dayItems(p,p.kind==='date'?new Date(reading.key+'T12:00'):+reading.key);
+  const s=items[reading.i],chs=segChapters(s),lastCh=reading.ci>=chs.length-1,lastItem=reading.i>=items.length-1;
+  $('#stripT').textContent=`통독 ${reading.i+1}/${items.length} · ${segLabel(s)}`;
+  $('#stripGo').textContent=!lastCh?'다음 장 ›':!lastItem?'읽음 ✓ 다음 ›':'읽음 ✓ 끝';
+}
+$('#stripGo').onclick=()=>{
+  const p=plans.find(x=>x.id===reading.id),items=dayItems(p,p.kind==='date'?new Date(reading.key+'T12:00'):+reading.key);
+  const chs=segChapters(items[reading.i]);
+  if(reading.ci<chs.length-1){startReading(p,reading.key,reading.i,reading.ci+1);return}
+  setCheck(p,reading.key,reading.i,true);
+  if(reading.i<items.length-1){startReading(p,reading.key,reading.i+1,0);return}
+  reading=null;pView=null;showTab('plan');
+};
+$('#stripX').onclick=()=>{reading=null;$('#strip').classList.add('hidden');document.body.classList.remove('reading')};
+/* 현황: 주일은 건너뛰어도 연속이 이어짐 */
+function streakAt(set,d){let n=0;d=new Date(d);for(let k=0;k<4000;k++){const t=ymd(d);if(set.has(t))n++;else if(d.getDay()!==0)break;d.setDate(d.getDate()-1)}return n}
+function renderStats(){
+  const log=LS.get('readLog',[]),set=new Set(log),now=new Date();
+  let st=streakAt(set,now);if(!set.has(ymd(now))){const y=new Date(now);y.setDate(y.getDate()-1);st=streakAt(set,y)}
+  let best=0;for(const t of log){const n=streakAt(set,new Date(t+'T12:00'));if(n>best)best=n}
+  const mp=ymd(now).slice(0,7);const month=log.filter(t=>t.startsWith(mp)).length;
+  $('#stStreak').textContent=st+'일';$('#stBest').textContent=Math.max(best,st)+'일';$('#stMonth').textContent=month+'일';$('#stMonthL').textContent=`${now.getMonth()+1}월에 읽은 날`;
+  const first=new Date(now.getFullYear(),now.getMonth(),1),lead=(first.getDay()+6)%7,dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  let h='';for(let i=0;i<lead;i++)h+='<i class="f"></i>';
+  for(let dd=1;dd<=dim;dd++){const d=new Date(now.getFullYear(),now.getMonth(),dd),t=ymd(d);h+=`<i class="${set.has(t)?'r':d.getDay()===0?'s':''}${dd===now.getDate()?' t':''}"></i>`}
+  $('#stCal').innerHTML=h;
+}
 
 /* ---------- 전체 내려받기 (오프라인용) ---------- */
 let dlBusy=false;
@@ -500,6 +651,7 @@ $('#dlAll').onclick=async()=>{
   try{[books,hymns]=await Promise.all([getJSON('data/books.json'),getJSON('data/hymns.json')])}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
   buildHymnIdx();buildToc();
   try{hymnSplit=await getJSON('data/split3.json')}catch(_){}
+  try{plans=await getJSON('data/plans-v1.json')}catch(_){}
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
