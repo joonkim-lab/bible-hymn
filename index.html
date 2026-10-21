@@ -228,7 +228,10 @@ body.reading #reader{padding-bottom:64px}
     </div>
     <div id="gate-pending" class="hidden">
       <p style="text-align:center"><b id="gPendName"></b>님, 신청됐어요.<br>보통 <b>24시간 안에</b> 승인됩니다.</p>
-      <div class="tip"><b>이 링크를 잊지 마세요.</b><br>아이폰은 사파리 아래 <b>공유 버튼(네모에 화살표)</b> → <b>홈 화면에 추가</b>를 눌러 두시면, 승인 뒤 홈 화면의 아이콘만 누르면 바로 열려요.</div>
+      <div class="tip"><b>📌 이 화면을 캡처해 두세요.</b> 승인이 되면 아래 순서대로 홈 화면에 넣고 쓰시면 돼요.</div>
+      <div class="tip"><b>아이폰</b><br>사파리 아래 가운데 <b>공유 버튼</b>(네모에 위쪽 화살표) → 아래로 내려 <b>홈 화면에 추가</b> → 오른쪽 위 <b>추가</b></div>
+      <div class="tip"><b>갤럭시 (삼성 인터넷·크롬)</b><br>오른쪽 아래 또는 오른쪽 위 <b>메뉴(≡ 또는 ⋮)</b> → <b>홈 화면에 추가</b> (또는 <b>현재 페이지 추가 → 홈 화면</b>) → <b>추가</b></div>
+      <div class="tip"><b>와이파이 없이 쓰고 싶다면</b><br>승인된 뒤 앱 오른쪽 위 <b>⚙ 설정 → 전체 내려받기</b>를 와이파이에서 한 번 눌러 두면, 인터넷 없이도 성경·찬송가가 다 열려요.</div>
       <button class="lite" id="gateRecheck">승인됐는지 다시 확인</button>
       <div class="msg" id="gateMsg2"></div>
     </div>
@@ -261,7 +264,7 @@ body.reading #reader{padding-bottom:64px}
   <header class="bh">
     <div class="row">
       <button class="title grow" id="crumb"><span id="crumbT">성경</span><span class="chev">▾</span></button>
-      <button class="icon" id="btnSet" aria-label="역본·글자">Aa</button>
+      <button class="icon" id="btnSet" aria-label="설정"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:block"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
   </header>
   <div id="reader">
@@ -311,7 +314,7 @@ body.reading #reader{padding-bottom:64px}
 <div class="sheet" id="shSet">
   <div class="sheet-bg"></div>
   <div class="sheet-panel">
-    <div class="sheet-head"><b>보기 설정</b><button class="icon" data-close>✕</button></div>
+    <div class="sheet-head"><b>설정</b><button class="icon" data-close>✕</button></div>
     <div class="setgrid">
       <div><div class="sec">주 역본</div><div class="opts" id="optMain"><button data-v="kr">개역개정</button><button data-v="en">ESV (2025)</button></div></div>
       <div><div class="sec">대역 (아래 줄)</div><div class="opts" id="optSub"><button data-v="">없음</button><button data-v="en">ESV (2025)</button><button data-v="kr">개역개정</button></div></div>
@@ -323,7 +326,7 @@ body.reading #reader{padding-bottom:64px}
     <div class="fsrow"><button class="icon" id="fsMinus" aria-label="글자 작게">A−</button><input type="range" id="fsRange" min="0" max="6" step="1" class="grow"><button class="icon" id="fsPlus" aria-label="글자 크게">A+</button></div>
     <div class="fsprev" id="fsPrev">태초에 하나님이 천지를 창조하시니라</div>
     <div class="row" style="padding:4px 16px 20px;justify-content:space-between"><span class="small">소제목 표시</span><label class="sw"><input type="checkbox" id="optHead" checked><span></span></label></div>
-    <div class="sec">기기 동기화</div>
+    <div class="sec">기기 동기화 (선택)</div>
     <div style="padding:0 16px 16px">
       <div id="syncIn" class="opts" style="padding:0"><input type="email" id="syncEmail" placeholder="이메일" autocomplete="username" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><input type="password" id="syncPw" placeholder="비밀번호" autocomplete="current-password" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><div class="row" style="gap:6px"><button class="tint grow" id="syncGo" style="padding:12px;font-size:16px">로그인</button><button class="grow" id="syncNew" style="padding:12px;font-size:16px">처음이면 가입</button></div><button id="syncReset" style="background:transparent;color:var(--muted);font-size:13px;padding:4px">비밀번호를 잊었어요</button></div>
       <div id="syncOut" class="hidden"><button class="wide" id="syncLogout">로그아웃</button><div class="small" style="padding-top:4px;text-align:center">로그아웃하면 이 기기는 다시 사용 신청이 필요해요</div></div>
