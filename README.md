@@ -1,10 +1,10 @@
-# 성경찬송 (개인용)
+# 준킴 성경 (승인제 개인용)
 
-- `index.html` — 앱 본체 (찬송가 검색/악보 보기, 성경 개역개정·ESV 보기, 절 형광펜)
-- `data/books.json` — 66권 목록
-- `data/kr/{0..65}.json`, `data/en/{0..65}.json` — 개역개정 / ESV 본문 (책 단위, 소제목 포함)
-- `data/hymns.json` — 새찬송가 645장 제목·통일찬송가 번호·분류 색인
-- `hymn/001~645.webp` — 악보 이미지
-- `sw.js`, `manifest.webmanifest`, `icon-*.png` — 홈화면 추가 / 오프라인용
+- `index.html` — 앱 본체. 처음 열면 **사용 신청**(이름·교회) 화면이 뜨고, 관리자가 승인한 기기만 성경·찬송가를 볼 수 있음
+- `admin.html` — 관리 화면 (신청 승인/차단, 문의함 답글). 관리자 이메일로 로그인
+- `firestore.rules`, `storage.rules` — 실제 잠금. 관리자 이메일은 두 파일의 `isAdmin()` 에 있음
+- `upload_locked.sh` — 성경 본문·찬송 악보·가사를 Storage `locked/` 로 올리는 스크립트
+- `data/books.json`, `data/split3.json`, `data/plans-v1.json` — 공개해도 되는 색인·통독표
+- `data/kr`, `data/en`, `data/hymns.json`, `hymn/` — **저장소에 없음**(.gitignore). 맥북 로컬 폴더에만 두고 Storage 로 올림
 
-GitHub Pages(main 브랜치 / root)로 배포하면 `https://joonkim-lab.github.io/bible-hymn/` 에서 열립니다.
+GitHub Pages(main / root) 그대로: https://joonkim-lab.github.io/bible-hymn/

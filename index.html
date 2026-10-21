@@ -137,6 +137,25 @@ header.bh{padding:6px 8px}
 .col.ch .it,.col.vs .it{text-align:center}
 .sheet-foot{padding:8px 12px}
 button.wide{width:100%;padding:12px;font-size:16px}
+/* 입장 화면(승인제) */
+#gate{position:fixed;inset:0;z-index:60;background:#f6efe3;color:#2b1d1f;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px calc(24px + var(--bot));overflow:auto}
+#gate .card{width:100%;max-width:420px;background:#fffaf2;border:1px solid #e7dac6;border-radius:18px;padding:22px 20px;box-shadow:0 6px 24px rgba(80,40,30,.08)}
+#gate h1{margin:0 0 4px;font-size:22px;color:#6b2d3c;letter-spacing:-.3px}
+#gate p{margin:8px 0;font-size:16px;line-height:1.55}
+#gate .note{font-size:14px;color:#7a6a5e;line-height:1.5}
+#gate label{display:block;font-size:14px;color:#7a6a5e;margin:12px 0 4px}
+#gate input{width:100%;font-size:18px;padding:12px 14px;border:1px solid #d9c8b0;border-radius:12px;background:#fff;color:#2b1d1f;outline:none}
+#gate input:focus{border-color:#6b2d3c}
+#gate button.go{width:100%;margin-top:16px;padding:14px;font-size:18px;font-weight:700;border-radius:14px;background:#6b2d3c;color:#fff}
+#gate button.go:disabled{opacity:.5}
+#gate button.lite{width:100%;margin-top:10px;padding:12px;font-size:15px;border-radius:12px;background:#f0e6d6;color:#6b2d3c}
+#gate .msg{min-height:20px;font-size:14px;color:#a33;margin-top:8px}
+#gate .tip{margin-top:14px;padding:12px 14px;background:#f3ebdd;border-radius:12px;font-size:14px;line-height:1.55;color:#4b3a35}
+#gate .tip b{color:#6b2d3c}
+/* 문의함 */
+.fbItem{padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;font-size:14px;line-height:1.5}
+.fbItem .q{white-space:pre-wrap}.fbItem .a{margin-top:6px;padding:8px 10px;background:var(--chip);border-radius:10px;white-space:pre-wrap}.fbItem .d{font-size:12px;color:var(--muted);margin-top:4px}
+textarea#fbText{width:100%;min-height:80px;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg);font-family:inherit;resize:vertical}
 button:disabled{opacity:.4}
 .setgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 4px}
 .opts{display:flex;flex-direction:column;gap:6px;padding:0 12px}
@@ -192,6 +211,28 @@ body.reading #reader{padding-bottom:64px}
 </style>
 </head>
 <body>
+<div id="gate">
+  <div class="card">
+    <div id="gate-loading"><h1>준킴 성경</h1><p class="note">확인 중이에요…</p></div>
+    <div id="gate-apply" class="hidden">
+      <h1>준킴 성경 사용 신청</h1>
+      <p class="note">승인된 분만 쓸 수 있는 개인용 앱이에요. 이름과 교회를 적어 주시면 확인 후 열어 드릴게요.</p>
+      <label for="gName">이름</label><input id="gName" placeholder="예) 김은혜" autocomplete="name" maxlength="30">
+      <label for="gChurch">교회 (또는 어떻게 아는 사이인지)</label><input id="gChurch" placeholder="예) ○○교회" maxlength="40">
+      <button class="go" id="gateApply">신청하기</button>
+      <div class="msg" id="gateMsg"></div>
+    </div>
+    <div id="gate-pending" class="hidden">
+      <h1>신청됐어요</h1>
+      <p><b id="gPendName"></b>님, 보통 <b>24시간 안에</b> 승인됩니다.</p>
+      <div class="tip"><b>이 링크를 잊지 마세요.</b><br>아이폰은 사파리 아래 <b>공유 버튼(네모에 화살표)</b> → <b>홈 화면에 추가</b>를 눌러 두시면, 승인 뒤 홈 화면의 아이콘만 누르면 바로 열려요.</div>
+      <button class="lite" id="gateRecheck">승인됐는지 다시 확인</button>
+      <div class="msg" id="gateMsg2"></div>
+    </div>
+    <div id="gate-blocked" class="hidden"><h1>사용이 막혀 있어요</h1><p class="note">이 기기는 지금 사용할 수 없어요. 준킴쌤에게 연락해 주세요.</p></div>
+    <div id="gate-off" class="hidden"><h1>인터넷이 필요해요</h1><p class="note">처음 한 번은 인터넷에 연결된 상태에서 열어 주세요.</p><button class="lite" id="gateRetry">다시 시도</button></div>
+  </div>
+</div>
 
 <!-- ============ 찬송가 ============ -->
 <section id="pgHymn" class="page on">
@@ -282,8 +323,16 @@ body.reading #reader{padding-bottom:64px}
     <div class="sec">기기 동기화</div>
     <div style="padding:0 16px 16px">
       <div id="syncIn" class="opts" style="padding:0"><input type="email" id="syncEmail" placeholder="이메일" autocomplete="username" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><input type="password" id="syncPw" placeholder="비밀번호" autocomplete="current-password" style="font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--fg)"><div class="row" style="gap:6px"><button class="tint grow" id="syncGo" style="padding:12px;font-size:16px">로그인</button><button class="grow" id="syncNew" style="padding:12px;font-size:16px">처음이면 가입</button></div><button id="syncReset" style="background:transparent;color:var(--muted);font-size:13px;padding:4px">비밀번호를 잊었어요</button></div>
-      <div id="syncOut" class="hidden"><button class="wide" id="syncLogout">로그아웃</button></div>
+      <div id="syncOut" class="hidden"><button class="wide" id="syncLogout">로그아웃</button><div class="small" style="padding-top:4px;text-align:center">로그아웃하면 이 기기는 다시 사용 신청이 필요해요</div></div>
       <div class="small" id="syncMsg" style="padding-top:6px;text-align:center"></div>
+      <div id="adminLink" class="hidden" style="padding-top:8px;text-align:center"><a href="admin.html" style="color:var(--tint);font-size:14px">관리 화면 열기 →</a></div>
+    </div>
+    <div class="sec">문의 · 오타 신고</div>
+    <div style="padding:0 16px 16px">
+      <textarea id="fbText" placeholder="예) 찬송가 123장 악보가 안 열려요 / 요한복음 3장 16절 글자가 이상해요"></textarea>
+      <button class="tint wide" id="fbSend" style="margin-top:8px">보내기</button>
+      <div class="small" id="fbMsg" style="padding-top:6px;text-align:center"></div>
+      <div id="fbList" style="padding-top:10px"></div>
     </div>
     <div class="sec">인터넷 없이 쓰기</div>
     <div style="padding:0 16px 20px"><button class="tint wide" id="dlAll">전체 내려받기 (성경·찬송가 약 45MB)</button><div class="small" id="dlMsg" style="padding-top:6px;text-align:center"></div></div>
@@ -303,6 +352,20 @@ const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.par
 let books=[],hymns=[];
 const cacheKR={},cacheEN={};
 async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(u);return r.json()}
+/* 잠긴 자료(성경 본문·찬송 악보·가사)는 Firebase Storage의 locked/ 아래에 있고, 승인된 기기만 읽을 수 있음.
+   한 번 받은 파일은 기기 캐시에 남겨 인터넷 없이도 보임. */
+const LOCK='locked-v1';
+async function getLocked(path){
+  let c=null;try{c=await caches.open(LOCK)}catch(e){}
+  const key='https://locked.local/'+path;
+  if(c){try{const hit=await c.match(key);if(hit)return hit.blob()}catch(e){}}
+  if(!fb||!fb.storage)throw new Error('offline');
+  const blob=await fb.getBlob(fb.sref(fb.storage,'locked/'+path));
+  if(c){try{await c.put(key,new Response(blob,{headers:{'Content-Type':blob.type||'application/octet-stream'}}))}catch(e){}}
+  return blob;
+}
+async function getLockedJSON(p){return JSON.parse(await (await getLocked(p)).text())}
+const pad3=n=>String(n).padStart(3,'0');
 
 /* ---------- 탭 ---------- */
 function showTab(t){
@@ -357,13 +420,20 @@ function renderHymnList(arr){
 $('#hymnList').addEventListener('click',e=>{const li=e.target.closest('li');if(li)openHymn(+li.dataset.n)});
 function openHymn(n){
   const h=hymns.find(x=>x.n===n);if(!h)return;curHymn=n;
-  $('#hymnImg').src='hymn/'+String(n).padStart(3,'0')+'.webp';$('#hymnImg').alt=h.t;
+  setHymnImg(n);$('#hymnImg').alt=h.t;
   $('#hymnCapL').textContent=`${n}장 · ${h.t}`;$('#hymnCapR').textContent=(h.cat||'')+(h.tong?' · 통 '+h.tong:'');
   $('#hymnList').classList.add('hidden');$('#hymnView').classList.remove('hidden');$('#hymnBack').classList.remove('hidden');
   $('#hymnPrev').disabled=n<=1;$('#hymnNext').disabled=n>=645;
   LS.set('hymn',n);applyFit();window.scrollTo(0,0);
   // 다음 장 미리 받기
-  const pre=new Image();pre.src='hymn/'+String(Math.min(645,n+1)).padStart(3,'0')+'.webp';
+  getLocked('hymn/'+pad3(Math.min(645,n+1))+'.webp').catch(()=>{});
+}
+let hymnObjURL=null;
+async function setHymnImg(n){
+  const img=$('#hymnImg');
+  try{const b=await getLocked('hymn/'+pad3(n)+'.webp');if(curHymn!==n)return;
+    const u=URL.createObjectURL(b);if(hymnObjURL)URL.revokeObjectURL(hymnObjURL);hymnObjURL=u;img.src=u}
+  catch(e){img.removeAttribute('src');$('#hymnCapR').textContent='악보를 불러오지 못했어요 · 인터넷을 확인해 주세요'}
 }
 /* 악보 보기 방식: 태블릿은 '한 화면'(높이 맞춤), 폰은 '폭 맞춤'이 기본. 버튼으로 바꾸면 그 기기에 기억 */
 let hymnFit=LS.get('hymnFit',null);
@@ -467,7 +537,7 @@ async function selBook(i){
 }
 $('#colCh').addEventListener('click',async e=>{const it=e.target.closest('.it');if(!it)return;tocC=+it.dataset.c;tocV=null;document.querySelectorAll('#colCh .it').forEach(x=>x.classList.toggle('on',x===it));
   $('#tocGo').disabled=false;$('#tocGo').textContent=`${books[tocB].kr} ${tocC}장으로 이동`;
-  try{if(!cacheKR[tocB])cacheKR[tocB]=await getJSON('data/kr/'+tocB+'.json')}catch(_){}
+  try{if(!cacheKR[tocB])cacheKR[tocB]=await getLockedJSON('data/kr/'+tocB+'.json')}catch(_){}
   const n=((cacheKR[tocB]||{})[tocC]||[]).length;
   $('#colVs').innerHTML=Array.from({length:n},(_,k)=>`<div class="it" data-v="${k+1}">${k+1}절</div>`).join('');$('#colVs').scrollTop=0;
 });
@@ -478,8 +548,8 @@ $('#crumb').onclick=()=>{openSheet('shToc');if(cur){if(tocB!==cur.b)selBook(cur.
 /* 본문 */
 async function loadBook(i){
   const need=[];const ws=[main,sub].filter(Boolean);
-  if(ws.includes('kr')&&!cacheKR[i])need.push(getJSON('data/kr/'+i+'.json').then(d=>cacheKR[i]=d));
-  if(ws.includes('en')&&!cacheEN[i])need.push(getJSON('data/en/'+i+'.json').then(d=>cacheEN[i]=d));
+  if(ws.includes('kr')&&!cacheKR[i])need.push(getLockedJSON('data/kr/'+i+'.json').then(d=>cacheKR[i]=d));
+  if(ws.includes('en')&&!cacheEN[i])need.push(getLockedJSON('data/en/'+i+'.json').then(d=>cacheEN[i]=d));
   await Promise.all(need);
 }
 async function openChapter(b,c,verse){
@@ -633,12 +703,16 @@ function renderStats(){
   $('#stCal').innerHTML=h;
 }
 
-/* ---------- 기기 동기화 (Firebase) ----------
-   통독 체크(pd:*), 읽은 날(readLog), 형광펜·줄(hl:*)만 올림. 인터넷이 없어도 앱은 그대로 동작하고, 다시 연결되면 맞춰짐. */
+/* ---------- 입장(승인제) · 기기 동기화 · 문의함 (Firebase) ----------
+   - 처음 열면 익명 로그인으로 이 기기에 고유 번호(uid)가 생김. 신청하면 members/{uid}에 '대기'로 기록되고,
+     관리 화면(admin.html)에서 승인하면 그 기기가 잠긴 자료(Storage locked/)를 읽을 수 있음. 실제 잠금은 Firestore/Storage 규칙이 함.
+   - 동기화: 통독 체크(pd:*), 읽은 날(readLog), 형광펜·줄(hl:*)만 users/{uid}에 올림. 이메일로 가입하면 익명 번호에 그대로 연결돼 승인이 유지됨. */
 const FB_CFG={apiKey:"AIzaSyBiqzeuZOnToyTnYiaPslHVdssxomH3VAY",authDomain:"joonkim-bible.firebaseapp.com",projectId:"joonkim-bible",storageBucket:"joonkim-bible.firebasestorage.app",messagingSenderId:"651094148499",appId:"1:651094148499:web:f7f2f156f0feb5e7359466"};
 const FB_V='10.12.2';
+const ADMIN_EMAILS=['joon.kim@educclesia.com']; // 관리자 표시용. 실제 권한은 firestore.rules / storage.rules 의 isAdmin() 이 정함
 const isSyncKey=k=>k.startsWith('pd:')||k.startsWith('hl:')||k==='readLog';
-let fb=null,fbUser=null,fbPushT=null,fbState='off';
+let fb=null,fbUser=null,fbPushT=null,fbState='off',member=null,unsubMember=null,unsubInbox=null,appStarted=false;
+const isAdminUser=()=>!!(fbUser&&fbUser.email&&ADMIN_EMAILS.includes(fbUser.email));
 function dirtyGet(){try{return JSON.parse(localStorage.getItem('syncDirty')||'{}')}catch(e){return {}}}
 function dirtySet(d){try{localStorage.setItem('syncDirty',JSON.stringify(d))}catch(e){}}
 function markDirty(k){const d=dirtyGet();d[k]=1;dirtySet(d);schedulePush()}
@@ -664,29 +738,66 @@ function applyRemote(s){
 }
 function paintSync(st){
   fbState=st||fbState;const m=$('#syncMsg');if(!m)return;
-  const on=!!fbUser;$('#syncIn').classList.toggle('hidden',on);$('#syncOut').classList.toggle('hidden',!on);
+  const on=!!(fbUser&&!fbUser.isAnonymous);$('#syncIn').classList.toggle('hidden',on);$('#syncOut').classList.toggle('hidden',!on);
+  $('#adminLink').classList.toggle('hidden',!isAdminUser());
   if(on)m.textContent=fbState==='err'?`${fbUser.email} · 지금은 연결이 안 돼요. 연결되면 자동으로 맞춰져요`:`${fbUser.email} · 아이폰·아이패드 기록이 함께 맞춰져요`;
   else if(fbState==='loading')m.textContent='연결 중…';
   else if(!fb)m.textContent='인터넷이 연결되면 로그인할 수 있어요';
-  else m.textContent='한 번 로그인하면 기기마다 기록이 같아져요';
+  else m.textContent='지금은 이 기기에만 기록이 남아요. 이메일로 가입하면 다른 기기와도 같아져요 (선택)';
 }
+
+/* 입장 화면 */
+function gateShow(st){
+  const g=$('#gate');if(st==='ok'){g.classList.add('hidden');return}
+  g.classList.remove('hidden');
+  for(const s of ['loading','apply','pending','blocked','off'])$('#gate-'+s).classList.toggle('hidden',s!==st);
+  if(st==='pending'&&member)$('#gPendName').textContent=member.name||'';
+}
+function onMember(snap){
+  member=snap&&snap.exists()?snap.data():null;
+  const st=isAdminUser()?'approved':(member?member.status:null);
+  if(st==='approved'){LS.set('approved',1);startApp();gateShow('ok')}
+  else if(st==='pending'){LS.set('approved',0);gateShow('pending')}
+  else if(st==='blocked'){LS.set('approved',0);gateShow('blocked')}
+  else{LS.set('approved',0);gateShow('apply')}
+  paintSync();
+}
+$('#gateApply').onclick=async()=>{
+  const name=$('#gName').value.trim(),church=$('#gChurch').value.trim();
+  if(!name){$('#gateMsg').textContent='이름을 적어 주세요';return}
+  if(!fb||!fbUser){$('#gateMsg').textContent='인터넷 연결을 확인하고 다시 눌러 주세요';return}
+  $('#gateApply').disabled=true;$('#gateMsg').textContent='보내는 중…';
+  try{await fb.setDoc(fb.doc(fb.db,'members',fbUser.uid),{name,church,status:'pending',at:fb.serverTimestamp(),ua:navigator.userAgent.slice(0,120)});$('#gateMsg').textContent=''}
+  catch(e){$('#gateMsg').textContent='보내지 못했어요. 잠시 뒤 다시 눌러 주세요'}
+  $('#gateApply').disabled=false;
+};
+$('#gateRecheck').onclick=async()=>{
+  if(!fb||!fbUser)return;$('#gateMsg2').textContent='확인 중…';
+  try{const s=await fb.getDoc(fb.doc(fb.db,'members',fbUser.uid));onMember(s);if(member&&member.status==='pending')$('#gateMsg2').textContent='아직 승인 전이에요. 조금만 기다려 주세요'}
+  catch(e){$('#gateMsg2').textContent='확인하지 못했어요. 인터넷을 확인해 주세요'}
+};
+$('#gateRetry').onclick=()=>location.reload();
+
 async function fbInit(){
   try{
     const base=`https://www.gstatic.com/firebasejs/${FB_V}/`;
-    const [app,auth,fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+    const [app,auth,fs,st]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js'),import(base+'firebase-storage.js')]);
     const a=app.initializeApp(FB_CFG),au=auth.getAuth(a);
-    fb={auth:au,db:fs.getFirestore(a),doc:fs.doc,setDoc:fs.setDoc,onSnapshot:fs.onSnapshot,serverTimestamp:fs.serverTimestamp,signIn:auth.signInWithEmailAndPassword,signUp:auth.createUserWithEmailAndPassword,reset:auth.sendPasswordResetEmail,signOut:auth.signOut};
+    fb={auth:au,db:fs.getFirestore(a),storage:st.getStorage(a),sref:st.ref,getBlob:st.getBlob,
+        doc:fs.doc,getDoc:fs.getDoc,setDoc:fs.setDoc,addDoc:fs.addDoc,collection:fs.collection,query:fs.query,where:fs.where,onSnapshot:fs.onSnapshot,serverTimestamp:fs.serverTimestamp,
+        signIn:auth.signInWithEmailAndPassword,signUp:auth.createUserWithEmailAndPassword,link:auth.linkWithCredential,cred:auth.EmailAuthProvider.credential,anon:auth.signInAnonymously,reset:auth.sendPasswordResetEmail,signOut:auth.signOut};
     let unsub=null;
-    auth.onAuthStateChanged(au,u=>{
-      fbUser=u;if(unsub){unsub();unsub=null}
-      if(u){
-        if(!localStorage.getItem('syncInit:'+u.uid)){const d=dirtyGet();for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSyncKey(k))d[k]=1}dirtySet(d);localStorage.setItem('syncInit:'+u.uid,'1')}
-        unsub=fb.onSnapshot(fb.doc(fb.db,'users',u.uid),snap=>{applyRemote((snap.data()||{}).s);paintSync('on')},()=>paintSync('err'));
-        pushDirty();
-      }
-      paintSync(u?'on':'off');
+    auth.onAuthStateChanged(au,async u=>{
+      if(!u){fbUser=null;member=null;try{await fb.anon(au)}catch(e){if(LS.get('approved')){startApp();gateShow('ok')}else gateShow('off')}return}
+      fbUser=u;if(unsub){unsub();unsub=null}if(unsubMember){unsubMember();unsubMember=null}
+      if(!localStorage.getItem('syncInit:'+u.uid)){const d=dirtyGet();for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSyncKey(k))d[k]=1}dirtySet(d);localStorage.setItem('syncInit:'+u.uid,'1')}
+      unsub=fb.onSnapshot(fb.doc(fb.db,'users',u.uid),snap=>{applyRemote((snap.data()||{}).s);paintSync('on')},()=>paintSync('err'));
+      pushDirty();
+      unsubMember=fb.onSnapshot(fb.doc(fb.db,'members',u.uid),onMember,()=>{if(LS.get('approved')){startApp();gateShow('ok')}else gateShow('off')});
+      watchInbox();
+      paintSync('on');
     });
-  }catch(e){fb=null;paintSync('off')}
+  }catch(e){fb=null;paintSync('off');if(LS.get('approved')){startApp();gateShow('ok')}else gateShow('off')}
 }
 (function(){const set=LS.set;LS.set=function(k,v){set.call(LS,k,v);if(isSyncKey(k))markDirty(k)}})();
 window.addEventListener('online',schedulePush);
@@ -697,12 +808,16 @@ $('#syncGo').onclick=async()=>{
   paintSync('loading');
   try{await fb.signIn(fb.auth,e,p);$('#syncPw').value=''}catch(err){$('#syncMsg').textContent=fbErr(err.code)||'로그인이 안 됐어요. 이메일과 비밀번호를 다시 확인하거나, 처음이면 「처음이면 가입」을 눌러 주세요'}
 };
-const fbErr=c=>({'auth/email-already-in-use':'이미 가입된 이메일이에요. 「로그인」을 눌러 주세요','auth/weak-password':'비밀번호는 6자 이상으로 해 주세요','auth/invalid-email':'이메일 주소를 다시 확인해 주세요','auth/network-request-failed':'인터넷 연결을 확인해 주세요','auth/too-many-requests':'잠시 뒤에 다시 해 주세요'})[c];
+const fbErr=c=>({'auth/email-already-in-use':'이미 가입된 이메일이에요. 「로그인」을 눌러 주세요','auth/credential-already-in-use':'이미 가입된 이메일이에요. 「로그인」을 눌러 주세요','auth/weak-password':'비밀번호는 6자 이상으로 해 주세요','auth/invalid-email':'이메일 주소를 다시 확인해 주세요','auth/network-request-failed':'인터넷 연결을 확인해 주세요','auth/too-many-requests':'잠시 뒤에 다시 해 주세요'})[c];
 $('#syncNew').onclick=async()=>{
   if(!fb){paintSync();return}
   const e=$('#syncEmail').value.trim(),p=$('#syncPw').value;if(!e||!p){$('#syncMsg').textContent='쓰실 이메일과 비밀번호(6자 이상)를 넣고 눌러 주세요';return}
   paintSync('loading');
-  try{await fb.signUp(fb.auth,e,p);$('#syncPw').value=''}catch(err){$('#syncMsg').textContent=fbErr(err.code)||'가입이 안 됐어요. 다시 해 주세요'}
+  try{
+    if(fbUser&&fbUser.isAnonymous){await fb.link(fbUser,fb.cred(e,p));fbUser=fb.auth.currentUser}  // 익명 번호에 연결 → 승인 그대로 유지
+    else await fb.signUp(fb.auth,e,p);
+    $('#syncPw').value='';paintSync('on');
+  }catch(err){$('#syncMsg').textContent=fbErr(err.code)||'가입이 안 됐어요. 다시 해 주세요'}
 };
 $('#syncReset').onclick=async()=>{
   if(!fb){paintSync();return}
@@ -711,36 +826,61 @@ $('#syncReset').onclick=async()=>{
 };
 $('#syncLogout').onclick=()=>{if(fb)fb.signOut(fb.auth)};
 
+/* 문의함: inbox/{id} = {uid, name, text, at, reply, replyAt} — 내 것만 읽고, 답글은 관리 화면에서 달림 */
+function watchInbox(){
+  if(unsubInbox){unsubInbox();unsubInbox=null}if(!fb||!fbUser)return;
+  unsubInbox=fb.onSnapshot(fb.query(fb.collection(fb.db,'inbox'),fb.where('uid','==',fbUser.uid)),snap=>{
+    const rows=snap.docs.map(d=>d.data()).sort((a,b)=>((b.at&&b.at.seconds)||0)-((a.at&&a.at.seconds)||0)).slice(0,20);
+    const dt=t=>t&&t.seconds?new Date(t.seconds*1000).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}):'';
+    $('#fbList').innerHTML=rows.map(r=>`<div class="fbItem"><div class="q">${esc(r.text)}</div><div class="d">${dt(r.at)}${r.reply?'':' · 답을 기다리는 중'}</div>${r.reply?`<div class="a">답글 · ${esc(r.reply)}</div>`:''}</div>`).join('');
+  },()=>{});
+}
+$('#fbSend').onclick=async()=>{
+  const t=$('#fbText').value.trim();if(!t){$('#fbMsg').textContent='내용을 적어 주세요';return}
+  if(!fb||!fbUser){$('#fbMsg').textContent='인터넷 연결을 확인해 주세요';return}
+  $('#fbSend').disabled=true;
+  try{await fb.addDoc(fb.collection(fb.db,'inbox'),{uid:fbUser.uid,name:(member&&member.name)||fbUser.email||'',text:t.slice(0,1000),at:fb.serverTimestamp()});$('#fbText').value='';$('#fbMsg').textContent='보냈어요. 답글은 이 자리에 보여요'}
+  catch(e){$('#fbMsg').textContent='보내지 못했어요. 잠시 뒤 다시 해 주세요'}
+  $('#fbSend').disabled=false;
+};
+
 /* ---------- 전체 내려받기 (오프라인용) ---------- */
 let dlBusy=false;
 function dlPaint(){const d=LS.get('dlDone',null);if(!dlBusy)$('#dlMsg').textContent=d?`내려받기 완료 (${d}) · 인터넷 없이도 전부 볼 수 있어요`:'와이파이에서 한 번만 받아 두면 인터넷 없이도 전부 볼 수 있어요'}
 dlPaint();
 $('#dlAll').onclick=async()=>{
   if(dlBusy)return;
-  if(!('serviceWorker' in navigator)||!navigator.serviceWorker.controller){$('#dlMsg').textContent='앱을 완전히 닫았다가 다시 연 뒤 눌러 주세요';return}
-  const urls=[];
+  const urls=['data/hymns.json'];
   for(let i=0;i<66;i++){urls.push('data/kr/'+i+'.json','data/en/'+i+'.json')}
-  for(let n=1;n<=645;n++)urls.push('hymn/'+String(n).padStart(3,'0')+'.webp');
+  for(let n=1;n<=645;n++)urls.push('hymn/'+pad3(n)+'.webp');
   dlBusy=true;$('#dlAll').disabled=true;let done=0,fail=0,idx=0;const total=urls.length;
   const tick=()=>{$('#dlMsg').textContent=`받는 중… ${done} / ${total}`+(fail?` (실패 ${fail})`:'')};tick();
-  async function worker(){while(idx<urls.length){const u=urls[idx++];try{const r=await fetch(u);if(!r.ok)throw 0;await r.arrayBuffer()}catch(e){fail++}done++;if(done%5===0||done===total)tick()}}
-  await Promise.all(Array.from({length:6},worker));
+  async function worker(){while(idx<urls.length){const u=urls[idx++];try{await getLocked(u)}catch(e){fail++}done++;if(done%5===0||done===total)tick()}}
+  await Promise.all(Array.from({length:4},worker));
   dlBusy=false;$('#dlAll').disabled=false;
   if(fail){$('#dlMsg').textContent=`${total-fail}개 받음, ${fail}개 실패 · 다시 누르면 실패한 것만 이어서 받아요`}
   else{const t=new Date();LS.set('dlDone',`${t.getMonth()+1}월 ${t.getDate()}일`);dlPaint()}
 };
 
 /* ---------- 시작 ---------- */
-(async function init(){
-  try{[books,hymns]=await Promise.all([getJSON('data/books.json'),getJSON('data/hymns.json')])}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
-  buildHymnIdx();buildToc();
-  try{hymnSplit=await getJSON('data/split3.json')}catch(_){}
-  try{plans=await getJSON('data/plans-v1.json')}catch(_){}
-  paintSync();fbInit();
+async function startApp(){
+  if(appStarted)return;appStarted=true;
+  try{hymns=await getLockedJSON('data/hymns.json')}catch(e){$('#hymnList').innerHTML='<div class="empty">찬송가 자료를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';appStarted=false;return}
+  buildHymnIdx();
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
   if(cur&&books[cur.b])openChapter(cur.b,cur.c);else if(!cur)openChapter(42,3);
   showTab(LS.get('tab','bible'));
+}
+(async function init(){
+  try{books=await getJSON('data/books.json')}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
+  buildToc();
+  try{hymnSplit=await getJSON('data/split3.json')}catch(_){}
+  try{plans=await getJSON('data/plans-v1.json')}catch(_){}
+  paintSync();
+  if(LS.get('approved')){gateShow('ok');startApp()}   // 전에 승인된 기기는 바로 열고(캐시로 오프라인도 됨), 뒤에서 상태를 다시 확인
+  else gateShow('loading');
+  fbInit();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
