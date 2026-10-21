@@ -35,7 +35,7 @@ button.ok{background:#dff1e5;color:var(--ok)}button.bad{background:#f8e0e0;color
 </style>
 </head>
 <body>
-<header><h1>이때이 성경찬송 · 관리</h1><span class="small" id="who"></span><button class="sm hidden" id="logout">로그아웃</button></header>
+<header><h1>이때이 성경찬송 · 관리</h1><span class="badge approved" id="quota" style="margin:0 6px 0 0;font-weight:700"></span><span class="small" id="who"></span><button class="sm hidden" id="logout">로그아웃</button></header>
 <div class="wrap">
   <div class="card" id="login">
     <p style="margin:0 0 10px;font-size:15px;color:var(--muted)">관리자 이메일로 로그인해 주세요.</p>
@@ -50,6 +50,7 @@ button.ok{background:#dff1e5;color:var(--ok)}button.bad{background:#f8e0e0;color
       <button data-t="approved">승인됨<span class="cnt" id="cApproved"></span></button>
       <button data-t="blocked">차단<span class="cnt" id="cBlocked"></span></button>
       <button data-t="inbox">문의함<span class="cnt" id="cInbox"></span></button>
+      <button data-t="invites">초대 코드<span class="cnt" id="cInvites"></span></button>
     </div>
     <div class="card" id="list"><div class="empty">불러오는 중…</div></div>
   </div>
@@ -57,13 +58,14 @@ button.ok{background:#dff1e5;color:var(--ok)}button.bad{background:#f8e0e0;color
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {getFirestore,collection,onSnapshot,doc,updateDoc,deleteDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {getFirestore,collection,onSnapshot,doc,setDoc,getDoc,updateDoc,deleteDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 const FB_CFG={apiKey:"AIzaSyBiqzeuZOnToyTnYiaPslHVdssxomH3VAY",authDomain:"joonkim-bible.firebaseapp.com",projectId:"joonkim-bible",storageBucket:"joonkim-bible.firebasestorage.app",messagingSenderId:"651094148499",appId:"1:651094148499:web:f7f2f156f0feb5e7359466"};
 const app=initializeApp(FB_CFG),auth=getAuth(app),db=getFirestore(app);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const dt=t=>t&&t.seconds?new Date(t.seconds*1000).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
-let members=[],inbox=[],tab='pending',unsubs=[];
+const MAX=50; // 승인 인원 상한 (functions/index.js 의 MAX_MEMBERS 와 같게)
+let members=[],inbox=[],invites=[],tab='pending',unsubs=[];
 // 디스코드 알림 링크 (#m=uid 신청자 / #i=id 문의) 로 들어오면 그 항목이 있는 탭을 열고 강조
 const hash=new URLSearchParams(location.hash.slice(1));let focusM=hash.get('m'),focusI=hash.get('i'),focused=false;
 
@@ -79,6 +81,7 @@ onAuthStateChanged(auth,u=>{
   $('#who').textContent=on?u.email:'';
   if(!on)return;
   unsubs.push(onSnapshot(collection(db,'members'),s=>{members=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{$('#list').innerHTML='<div class="empty">권한이 없어요. 이 이메일이 규칙의 관리자 목록에 있는지 확인해 주세요<br><span style="font-size:12px">'+esc(e.message)+'</span></div>'}));
+  unsubs.push(onSnapshot(collection(db,'invites'),s=>{invites=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{}));
   unsubs.push(onSnapshot(collection(db,'inbox'),s=>{inbox=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{}));
 });
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));render()});
@@ -89,24 +92,43 @@ function render(){
   const by=st=>members.filter(m=>m.status===st).sort((a,b)=>((b.at&&b.at.seconds)||0)-((a.at&&a.at.seconds)||0));
   $('#cPending').textContent=by('pending').length||'';$('#cApproved').textContent=by('approved').length||'';$('#cBlocked').textContent=by('blocked').length||'';
   const open=inbox.filter(i=>!i.reply).length;$('#cInbox').textContent=open||'';
+  const nA=by('approved').length;$('#quota').textContent=`승인 ${nA} / ${MAX}명`;$('#quota').className='badge '+(nA>=MAX?'blocked':nA>=MAX-5?'pending':'approved');
+  const unused=invites.filter(i=>!i.used).length;$('#cInvites').textContent=unused||'';
   const el=$('#list');
+  if(tab==='invites'){
+    const rows=[...invites].sort((a,b)=>((b.at&&b.at.seconds)||0)-((a.at&&a.at.seconds)||0));
+    el.innerHTML=`<div style="margin-bottom:12px"><input id="invCode" placeholder="코드 (예: 이때이할렐루야, 강의1021)" maxlength="20"><input id="invLabel" placeholder="메모 (예: 교인용 / 10월 21일 강의)" maxlength="40"><button class="go" id="invMake" style="width:100%">코드 만들기</button><div class="m" style="margin-top:8px">코드는 여러 명이 같이 써요. 신청자가 넣은 코드가 디스코드 알림에 보여 어느 그룹인지 알 수 있어요.<br>「자동 승인」을 켠 코드는 넣는 즉시 열리고, 꺼진 코드는 준킴쌤이 승인해야 열려요.</div></div>`+
+      (rows.length?rows.map(i=>`<div class="item" data-id="${i.id}"><div class="n"><code style="font-size:18px">${esc(i.id)}</code><span class="badge ${i.auto?'approved':''}">${i.auto?'자동 승인':'직접 승인'}</span></div><div class="m">${esc(i.label)||'(메모 없음)'} · ${i.uses||0}명 사용${i.lastUsedBy?' · 최근 '+esc(i.lastUsedBy)+' '+dt(i.lastUsedAt):''}</div><div class="row"><button class="sm" data-act="copy">코드 복사</button><button class="sm ${i.auto?'bad':'ok'}" data-act="toggleAuto">${i.auto?'자동 승인 끄기':'자동 승인 켜기'}</button><button class="sm" data-act="delInv">지우기</button></div></div>`).join(''):'<div class="empty">만든 코드가 없어요</div>');
+    $('#invMake').onclick=makeInvite;afterRender();return;
+  }
   if(tab==='inbox'){
     const rows=[...inbox].sort((a,b)=>((b.at&&b.at.seconds)||0)-((a.at&&a.at.seconds)||0));
     el.innerHTML=rows.length?rows.map(i=>`<div class="item" data-id="${i.id}"><div class="n">${esc(i.name)||'(이름 없음)'}<span class="badge ${i.reply?'approved':'pending'}">${i.reply?'답함':'대기'}</span></div><div class="m">${dt(i.at)}</div><div class="q">${esc(i.text)}</div>${i.reply?`<div class="a">${esc(i.reply)}<div class="m" style="margin:4px 0 0">${dt(i.replyAt)}</div></div>`:''}<textarea data-reply placeholder="답글 (사용자 앱의 문의함에 보여요)" rows="2"></textarea><div class="row"><button class="sm go" data-act="reply">답글 보내기</button><button class="sm bad" data-act="delInbox">지우기</button></div></div>`).join(''):'<div class="empty">문의가 없어요</div>';
     afterRender();return;
   }
   const rows=by(tab);
-  const btns=m=>tab==='pending'?`<button class="sm ok" data-act="approve">승인</button><button class="sm bad" data-act="block">거절(차단)</button>`:
+  const full=by('approved').length>=MAX;
+  const btns=m=>tab==='pending'?`<button class="sm ok" data-act="approve" ${full?'disabled title="정원이 가득 찼어요"':''}>${full?'정원 초과':'승인'}</button><button class="sm bad" data-act="block">거절(차단)</button>`:
     tab==='approved'?`<button class="sm bad" data-act="block">차단</button><button class="sm" data-act="del">기기 지우기</button>`:
-    `<button class="sm ok" data-act="approve">다시 승인</button><button class="sm" data-act="del">기기 지우기</button>`;
-  el.innerHTML=rows.length?rows.map(m=>`<div class="item" data-id="${m.id}"><div class="n">${esc(m.name)}<span class="badge ${m.status}">${{pending:'대기',approved:'승인',blocked:'차단'}[m.status]||m.status}</span></div><div class="m">${esc(m.church)||'(교회 미기재)'} · 신청 ${dt(m.at)}${m.ua?' · '+esc(m.ua.split(') ')[0].replace('(','').slice(0,40)):''}</div><div class="row">${btns(m)}</div></div>`).join(''):`<div class="empty">${{pending:'대기 중인 신청이 없어요',approved:'승인된 기기가 없어요',blocked:'차단된 기기가 없어요'}[tab]}</div>`;
+    `<button class="sm ok" data-act="approve" ${full?'disabled':''}>${full?'정원 초과':'다시 승인'}</button><button class="sm" data-act="del">기기 지우기</button>`;
+  el.innerHTML=rows.length?rows.map(m=>`<div class="item" data-id="${m.id}"><div class="n">${esc(m.name)}<span class="badge ${m.status}">${{pending:'대기',approved:'승인',blocked:'차단'}[m.status]||m.status}</span></div><div class="m">${esc(m.church)||'(교회 미기재)'} · 신청 ${dt(m.at)}${m.via==='code'?' · 코드 자동 승인':''}${m.code?' · 코드 '+esc(m.code):''}${m.codeError?' · <b style="color:var(--warn)">'+esc(m.codeError)+'</b>':''}${m.ua?' · '+esc(m.ua.split(') ')[0].replace('(','').slice(0,40)):''}</div><div class="row">${btns(m)}</div></div>`).join(''):`<div class="empty">${{pending:'대기 중인 신청이 없어요',approved:'승인된 기기가 없어요',blocked:'차단된 기기가 없어요'}[tab]}</div>`;
   afterRender();
+}
+async function makeInvite(){
+  const code=$('#invCode').value.replace(/\s+/g,''),label=$('#invLabel').value.trim();
+  if(!code){alert('코드를 적어 주세요');return}
+  if((await getDoc(doc(db,'invites',code))).exists()){alert('이미 있는 코드예요');return}
+  await setDoc(doc(db,'invites',code),{label,auto:false,uses:0,at:serverTimestamp()});
+  $('#invCode').value='';$('#invLabel').value='';
 }
 function afterRender(){const id=focusM||focusI;if(!id)return;const el=$('#list').querySelector(`.item[data-id="${id}"]`);if(el){el.classList.add('hi');el.scrollIntoView({block:'center'})}}
 $('#list').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-act]');if(!b)return;const it=b.closest('.item'),id=it.dataset.id,act=b.dataset.act;b.disabled=true;
   try{
-    if(act==='approve')await updateDoc(doc(db,'members',id),{status:'approved',decidedAt:serverTimestamp()});
+    if(act==='approve'){if(members.filter(m=>m.status==='approved').length>=MAX){alert(`정원 ${MAX}명이 가득 찼어요. 승인된 기기를 먼저 지우거나 차단해 주세요`);b.disabled=false;return}await updateDoc(doc(db,'members',id),{status:'approved',decidedAt:serverTimestamp()})}
+    else if(act==='copy'){try{await navigator.clipboard.writeText(id);b.textContent='복사됨';setTimeout(()=>b.textContent='코드 복사',1200)}catch(e){prompt('코드',id)}}
+    else if(act==='delInv'){if(confirm('이 코드를 지울까요? 이미 승인된 분들은 그대로 쓸 수 있어요'))await deleteDoc(doc(db,'invites',id))}
+    else if(act==='toggleAuto'){const inv=invites.find(x=>x.id===id);await updateDoc(doc(db,'invites',id),{auto:!(inv&&inv.auto)})}
     else if(act==='block')await updateDoc(doc(db,'members',id),{status:'blocked',decidedAt:serverTimestamp()});
     else if(act==='del'){if(confirm('이 기기 기록을 지울까요? 그 폰은 다시 신청 화면이 떠요'))await deleteDoc(doc(db,'members',id))}
     else if(act==='reply'){const t=it.querySelector('[data-reply]').value.trim();if(!t){b.disabled=false;return}await updateDoc(doc(db,'inbox',id),{reply:t.slice(0,1000),replyAt:serverTimestamp()})}

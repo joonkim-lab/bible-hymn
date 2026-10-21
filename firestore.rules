@@ -12,7 +12,8 @@ service cloud.firestore {
       allow read: if me(uid) || isAdmin();
       allow create: if me(uid)
         && request.resource.data.status == 'pending'
-        && request.resource.data.keys().hasOnly(['name', 'church', 'status', 'at', 'ua'])
+        && request.resource.data.keys().hasOnly(['name', 'church', 'status', 'at', 'ua', 'code'])
+        && (!('code' in request.resource.data) || (request.resource.data.code is string && request.resource.data.code.size() <= 20))
         && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 30
         && request.resource.data.church is string && request.resource.data.church.size() <= 40;
       allow update, delete: if isAdmin();
@@ -26,6 +27,11 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'at'])
         && request.resource.data.text is string && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 1000;
       allow update, delete: if isAdmin();
+    }
+
+    // 1회용 초대 코드. 만들고 보는 건 관리자만, 사용 처리는 서버 함수가 함.
+    match /invites/{code} {
+      allow read, write: if isAdmin();
     }
 
     // 기기 동기화 기록(통독·형광펜). 본인만.

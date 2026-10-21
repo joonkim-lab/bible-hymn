@@ -223,6 +223,7 @@ body.reading #reader{padding-bottom:64px}
       <p class="note">승인된 분만 쓸 수 있는 앱이에요.<br>이름과 교회를 적어 주시면 확인 후 열어 드릴게요.</p>
       <div class="sec">이름</div><input id="gName" placeholder="예) 김은혜" autocomplete="name" maxlength="30">
       <div class="sec">교회 (또는 어떻게 아는 사이인지)</div><input id="gChurch" placeholder="예) 이때이교회" maxlength="40">
+      <div class="sec">초대 코드 <span style="font-weight:400">(교회나 강의에서 알려 드린 코드)</span></div><input id="gCode" placeholder="예) 이때이할렐루야" autocomplete="off" maxlength="20">
       <button class="go" id="gateApply">신청하기</button>
       <div class="msg" id="gateMsg"></div>
     </div>
@@ -757,7 +758,7 @@ function gateShow(st){
   const g=$('#gate');if(st==='ok'){g.classList.add('hidden');return}
   g.classList.remove('hidden');
   for(const s of ['loading','apply','pending','blocked','off'])$('#gate-'+s).classList.toggle('hidden',s!==st);
-  if(st==='pending'&&member)$('#gPendName').textContent=member.name||'';
+  if(st==='pending'&&member){$('#gPendName').textContent=member.name||'';$('#gateMsg2').textContent=member.codeError?'초대 코드가 맞지 않아요('+member.codeError+'). 코드를 다시 확인해 알려 주세요':''}
 }
 function onMember(snap){
   member=snap&&snap.exists()?snap.data():null;
@@ -769,11 +770,12 @@ function onMember(snap){
   paintSync();
 }
 $('#gateApply').onclick=async()=>{
-  const name=$('#gName').value.trim(),church=$('#gChurch').value.trim();
+  const name=$('#gName').value.trim(),church=$('#gChurch').value.trim(),code=$('#gCode').value.replace(/\s+/g,'');
   if(!name){$('#gateMsg').textContent='이름을 적어 주세요';return}
+  if(!code){$('#gateMsg').textContent='초대 코드를 적어 주세요';return}
   if(!fb||!fbUser){$('#gateMsg').textContent='인터넷 연결을 확인하고 다시 눌러 주세요';return}
   $('#gateApply').disabled=true;$('#gateMsg').textContent='보내는 중…';
-  try{await fb.setDoc(fb.doc(fb.db,'members',fbUser.uid),{name,church,status:'pending',at:fb.serverTimestamp(),ua:navigator.userAgent.slice(0,120)});$('#gateMsg').textContent=''}
+  try{await fb.setDoc(fb.doc(fb.db,'members',fbUser.uid),{name,church,code,status:'pending',at:fb.serverTimestamp(),ua:navigator.userAgent.slice(0,120)});$('#gateMsg').textContent=''}
   catch(e){$('#gateMsg').textContent='보내지 못했어요. 잠시 뒤 다시 눌러 주세요'}
   $('#gateApply').disabled=false;
 };
