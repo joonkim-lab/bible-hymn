@@ -221,7 +221,6 @@ body.reading #reader{padding-bottom:64px}
     <div id="gate-inapp" class="hidden tip" style="margin:0 0 16px;border:1px solid var(--tint)"><b>카카오톡 안에서 열렸어요.</b> 여기서는 신청과 홈 화면 추가가 안 돼요.<br><b>아이폰</b>: 오른쪽 아래 <b>⋯</b> → <b>Safari로 열기</b><br><b>갤럭시</b>: 오른쪽 위 <b>⋮</b> → <b>다른 브라우저로 열기</b><div class="row" style="margin-top:8px;gap:6px"><button class="lite" id="gateCopy" style="margin:0">주소 복사</button></div></div>
     <div id="gate-loading"><p class="note">확인 중이에요…</p></div>
     <div id="gate-apply" class="hidden">
-      <p class="note">승인된 분만 쓸 수 있는 앱이에요.<br>이름과 교회를 적어 주시면 확인 후 열어 드릴게요.</p>
       <div class="sec">이름</div><input id="gName" placeholder="예) 김은혜" autocomplete="name" maxlength="30">
       <div class="sec">교회 (또는 어떻게 아는 사이인지)</div><input id="gChurch" placeholder="예) 이때이교회" maxlength="40">
       <div class="sec">초대 코드 <span style="font-weight:400">(교회나 강의에서 알려 드린 코드)</span></div><input id="gCode" placeholder="예) 다윗과골리앗" autocomplete="off" maxlength="20">
@@ -230,10 +229,21 @@ body.reading #reader{padding-bottom:64px}
     </div>
     <div id="gate-pending" class="hidden">
       <p style="text-align:center"><b id="gPendName"></b>님, 신청됐어요.<br>보통 <b>24시간 안에</b> 승인됩니다.</p>
-      <div class="tip"><b>📌 이 화면을 캡처해 두세요.</b> 승인이 되면 아래 순서대로 홈 화면에 넣고 쓰시면 돼요.</div>
-      <div class="tip"><b>아이폰</b><br>사파리 아래 가운데 <b>공유 버튼</b>(네모에 위쪽 화살표) → 아래로 내려 <b>홈 화면에 추가</b> → 오른쪽 위 <b>추가</b></div>
-      <div class="tip"><b>갤럭시 (삼성 인터넷·크롬)</b><br>오른쪽 아래 또는 오른쪽 위 <b>메뉴(≡ 또는 ⋮)</b> → <b>홈 화면에 추가</b> (또는 <b>현재 페이지 추가 → 홈 화면</b>) → <b>추가</b></div>
-      <div class="tip"><b>와이파이 없이 쓰고 싶다면</b><br>승인된 뒤 앱 오른쪽 위 <b>⚙ 설정 → 전체 내려받기</b>를 와이파이에서 한 번 눌러 두면, 인터넷 없이도 성경·찬송가가 다 열려요.</div>
+      <div class="tip"><b>📌 이 화면을 캡처해 두세요.</b> 승인 뒤에 보면서 하시면 돼요.</div>
+      <div class="tip"><b>아이폰 환경</b><br>
+1. 이 페이지가 <b>사파리</b>에서 열려 있는지 확인 (카톡 안에서 열면 안 돼요)<br>
+2. 아래 가운데 <b>공유 버튼</b>(네모에 화살표) → 아래로 내려 <b>홈 화면에 추가</b> → 오른쪽 위 <b>추가</b><br>
+3. 승인되면 홈 화면의 <b>「이때이 성경찬송」</b> 아이콘을 누르세요<br>
+4. 처음 한 번은 자료를 받느라 <b>10~20초</b> 걸려요. 그대로 기다리세요<br>
+5. 와이파이에서 오른쪽 위 <b>⚙ 설정 → 전체 내려받기</b>를 한 번 누르면 인터넷 없이도 돼요</div>
+      <div class="tip"><b>안드로이드 환경</b><br>
+1. 이 페이지가 <b>크롬</b> 또는 <b>삼성 인터넷</b>에서 열려 있는지 확인 (카톡 안에서 열면 안 돼요)<br>
+2. 홈 화면에 넣기<br>
+&nbsp;&nbsp;· 크롬: 오른쪽 위 <b>⋮</b> → <b>홈 화면에 추가</b> → <b>설치</b>(또는 추가)<br>
+&nbsp;&nbsp;· 삼성 인터넷: 오른쪽 아래 <b>≡</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b> → <b>추가</b><br>
+3. 승인되면 홈 화면의 <b>「이때이 성경찬송」</b> 아이콘을 누르세요<br>
+4. 처음 한 번은 자료를 받느라 <b>10~20초</b> 걸려요. 그대로 기다리세요<br>
+5. 와이파이에서 오른쪽 위 <b>⚙ 설정 → 전체 내려받기</b>를 한 번 누르면 인터넷 없이도 돼요</div>
       <button class="lite" id="gateRecheck">승인됐는지 다시 확인</button>
       <div class="msg" id="gateMsg2"></div>
     </div>
