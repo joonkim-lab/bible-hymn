@@ -147,7 +147,7 @@ button.wide{width:100%;padding:12px;font-size:16px}
 #gate .note{font-size:14px;color:var(--muted);line-height:1.55;text-align:center}
 #gate .sec{padding:16px 0 6px;color:var(--muted);font-size:13px;font-weight:600}
 #gate input{width:100%;font-size:17px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--chip);color:var(--fg);outline:none;-webkit-appearance:none}
-#gate input::placeholder{color:var(--muted)}
+#gate input::placeholder{color:var(--muted);opacity:.55}
 #gate button.go{width:100%;margin-top:18px;padding:14px;font-size:17px;font-weight:600;border-radius:12px;background:var(--tint);color:#fff}
 #gate button.go:disabled{opacity:.5}
 #gate button.lite{width:100%;margin-top:10px;padding:12px;font-size:15px;border-radius:12px;background:var(--chip);color:var(--tint)}
@@ -223,7 +223,7 @@ body.reading #reader{padding-bottom:64px}
       <p class="note">승인된 분만 쓸 수 있는 앱이에요.<br>이름과 교회를 적어 주시면 확인 후 열어 드릴게요.</p>
       <div class="sec">이름</div><input id="gName" placeholder="예) 김은혜" autocomplete="name" maxlength="30">
       <div class="sec">교회 (또는 어떻게 아는 사이인지)</div><input id="gChurch" placeholder="예) 이때이교회" maxlength="40">
-      <div class="sec">초대 코드 <span style="font-weight:400">(교회나 강의에서 알려 드린 코드)</span></div><input id="gCode" placeholder="예) 이때이할렐루야" autocomplete="off" maxlength="20">
+      <div class="sec">초대 코드 <span style="font-weight:400">(교회나 강의에서 알려 드린 코드)</span></div><input id="gCode" placeholder="예) 다윗과골리앗" autocomplete="off" maxlength="20">
       <button class="go" id="gateApply">신청하기</button>
       <div class="msg" id="gateMsg"></div>
     </div>
