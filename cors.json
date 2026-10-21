@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://joonkim-lab.github.io"],
+    "method": ["GET", "HEAD"],
+    "responseHeader": ["Content-Type", "Content-Length", "Authorization", "X-Goog-Upload-Protocol"],
+    "maxAgeSeconds": 3600
+  }
+]
