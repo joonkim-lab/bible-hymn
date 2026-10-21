@@ -873,7 +873,7 @@ $('#dlAll').onclick=async()=>{
 /* ---------- 시작 ---------- */
 async function startApp(){
   if(appStarted)return;appStarted=true;
-  try{hymns=await getLockedJSON('data/hymns.json')}catch(e){$('#hymnList').innerHTML='<div class="empty">찬송가 자료를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';appStarted=false;return}
+  try{hymns=await getLockedJSON('data/hymns.json')}catch(e){console.error(e);$('#hymnList').innerHTML='<div class="empty">찬송가 자료를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.<br><span style="font-size:12px;opacity:.7">'+esc((e&&(e.code||e.message))||String(e))+'</span></div>';appStarted=false;return}
   buildHymnIdx();
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
