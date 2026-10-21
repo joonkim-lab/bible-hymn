@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 관리자 이메일. 바꾸려면 이 줄과 storage.rules 의 같은 줄을 함께 고치고 다시 배포.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email in ['joon.kim@educclesia.com'];
+    }
+    function me(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    // 사용 신청. 본인은 '대기'로 만들기만 가능, 상태 변경은 관리자만.
+    match /members/{uid} {
+      allow read: if me(uid) || isAdmin();
+      allow create: if me(uid)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly(['name', 'church', 'status', 'at', 'ua'])
+        && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 30
+        && request.resource.data.church is string && request.resource.data.church.size() <= 40;
+      allow update, delete: if isAdmin();
+    }
+
+    // 문의함. 본인은 쓰기·자기 것 읽기만, 답글·삭제는 관리자만.
+    match /inbox/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'at'])
+        && request.resource.data.text is string && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 1000;
+      allow update, delete: if isAdmin();
+    }
+
+    // 기기 동기화 기록(통독·형광펜). 본인만.
+    match /users/{uid} {
+      allow read, write: if me(uid);
+    }
+  }
+}

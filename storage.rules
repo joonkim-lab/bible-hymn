@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email in ['joon.kim@educclesia.com'];
+    }
+    function approved() {
+      return request.auth != null
+        && firestore.get(/databases/(default)/documents/members/$(request.auth.uid)).data.status == 'approved';
+    }
+    // 성경 본문·찬송 악보·가사. 승인된 기기와 관리자만 읽기. 올리기는 콘솔/gsutil 로만.
+    match /locked/{path=**} {
+      allow read: if isAdmin() || approved();
+      allow write: if false;
+    }
+    match /{other=**} {
+      allow read, write: if false;
+    }
+  }
+}
