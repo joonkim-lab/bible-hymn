@@ -146,7 +146,7 @@ button.wide{width:100%;padding:12px;font-size:16px}
 #gate p{margin:8px 0;font-size:16px;line-height:1.55}
 #gate .note{font-size:14px;color:var(--muted);line-height:1.55;text-align:center}
 #gate .sec{padding:16px 0 6px;color:var(--muted);font-size:13px;font-weight:600}
-#gate input{width:100%;font-size:17px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--chip);color:var(--fg);outline:none;-webkit-appearance:none}
+#gate input{width:100%;font-size:17px;-webkit-user-select:text;user-select:text;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--chip);color:var(--fg);outline:none;-webkit-appearance:none}
 #gate input::placeholder{color:var(--muted);opacity:.55}
 #gate button.go{width:100%;margin-top:18px;padding:14px;font-size:17px;font-weight:600;border-radius:12px;background:var(--tint);color:#fff}
 #gate button.go:disabled{opacity:.5}
@@ -218,6 +218,7 @@ body.reading #reader{padding-bottom:64px}
     <img class="logo" src="icon-ittei-180.png" alt="">
     <h1>이때이 성경찬송</h1>
     <div class="slogan">이때, 이 성경</div>
+    <div id="gate-inapp" class="hidden tip" style="margin:0 0 16px;border:1px solid var(--tint)"><b>카카오톡 안에서 열렸어요.</b> 여기서는 신청과 홈 화면 추가가 안 돼요.<br><b>아이폰</b>: 오른쪽 아래 <b>⋯</b> → <b>Safari로 열기</b><br><b>갤럭시</b>: 오른쪽 위 <b>⋮</b> → <b>다른 브라우저로 열기</b><div class="row" style="margin-top:8px;gap:6px"><button class="lite" id="gateCopy" style="margin:0">주소 복사</button></div></div>
     <div id="gate-loading"><p class="note">확인 중이에요…</p></div>
     <div id="gate-apply" class="hidden">
       <p class="note">승인된 분만 쓸 수 있는 앱이에요.<br>이름과 교회를 적어 주시면 확인 후 열어 드릴게요.</p>
@@ -773,8 +774,9 @@ $('#gateApply').onclick=async()=>{
   const name=$('#gName').value.trim(),church=$('#gChurch').value.trim(),code=$('#gCode').value.replace(/\s+/g,'');
   if(!name){$('#gateMsg').textContent='이름을 적어 주세요';return}
   if(!code){$('#gateMsg').textContent='초대 코드를 적어 주세요';return}
-  if(!fb||!fbUser){$('#gateMsg').textContent='인터넷 연결을 확인하고 다시 눌러 주세요';return}
   $('#gateApply').disabled=true;$('#gateMsg').textContent='보내는 중…';
+  for(let i=0;i<80&&!(fb&&fbUser);i++)await new Promise(r=>setTimeout(r,100));
+  if(!fb||!fbUser){$('#gateMsg').textContent='인터넷 연결을 확인하고 다시 눌러 주세요';$('#gateApply').disabled=false;return}
   try{await fb.setDoc(fb.doc(fb.db,'members',fbUser.uid),{name,church,code,status:'pending',at:fb.serverTimestamp(),ua:navigator.userAgent.slice(0,120)});$('#gateMsg').textContent=''}
   catch(e){$('#gateMsg').textContent='보내지 못했어요. 잠시 뒤 다시 눌러 주세요'}
   $('#gateApply').disabled=false;
@@ -785,6 +787,8 @@ $('#gateRecheck').onclick=async()=>{
   catch(e){$('#gateMsg2').textContent='확인하지 못했어요. 인터넷을 확인해 주세요'}
 };
 $('#gateRetry').onclick=()=>location.reload();
+(function(){const ua=navigator.userAgent;if(/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(ua)){const b=$('#gate-inapp');b.classList.remove('hidden');if(!/KAKAOTALK/i.test(ua))b.querySelector('b').textContent='앱 안의 브라우저에서 열렸어요.';
+  $('#gateCopy').onclick=async()=>{const u=location.href.split('#')[0];try{await navigator.clipboard.writeText(u);$('#gateCopy').textContent='복사됨 · 사파리/크롬 주소창에 붙여 넣으세요'}catch(e){prompt('이 주소를 복사해 사파리/크롬에서 여세요',u)}}}})();
 
 async function fbInit(){
   try{
@@ -873,6 +877,7 @@ $('#dlAll').onclick=async()=>{
 /* ---------- 시작 ---------- */
 async function startApp(){
   if(appStarted)return;appStarted=true;
+  for(let i=0;i<100&&!books.length;i++)await new Promise(r=>setTimeout(r,100));
   try{hymns=await getLockedJSON('data/hymns.json')}catch(e){console.error(e);$('#hymnList').innerHTML='<div class="empty">찬송가 자료를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.<br><span style="font-size:12px;opacity:.7">'+esc((e&&(e.code||e.message))||String(e))+'</span></div>';appStarted=false;return}
   buildHymnIdx();
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
@@ -881,14 +886,15 @@ async function startApp(){
   showTab(LS.get('tab','bible'));
 }
 (async function init(){
+  // 처음 온 기기는 신청 화면을 바로 보여 주고(로그인은 뒤에서), 승인된 기기는 바로 앱을 연다
+  if(LS.get('approved'))gateShow('ok');else gateShow('apply');
+  fbInit();
   try{books=await getJSON('data/books.json')}catch(e){$('#hymnList').innerHTML='<div class="empty">데이터를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div>';return}
   buildToc();
+  if(LS.get('approved'))startApp();   // 전에 승인된 기기: 캐시로 오프라인도 됨, 뒤에서 상태를 다시 확인
   try{hymnSplit=await getJSON('data/split3.json')}catch(_){}
   try{plans=await getJSON('data/plans-v1.json')}catch(_){}
   paintSync();
-  if(LS.get('approved')){gateShow('ok');startApp()}   // 전에 승인된 기기는 바로 열고(캐시로 오프라인도 됨), 뒤에서 상태를 다시 확인
-  else gateShow('loading');
-  fbInit();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
