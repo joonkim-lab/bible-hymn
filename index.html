@@ -363,12 +363,14 @@ async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(u);ret
 /* 잠긴 자료(성경 본문·찬송 악보·가사)는 Firebase Storage의 locked/ 아래에 있고, 승인된 기기만 읽을 수 있음.
    한 번 받은 파일은 기기 캐시에 남겨 인터넷 없이도 보임. */
 const LOCK='locked-v1';
+const withTimeout=(p,ms,what)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout: '+what)),ms))]);
 async function getLocked(path){
-  let c=null;try{c=await caches.open(LOCK)}catch(e){}
+  let c=null;try{c=await withTimeout(caches.open(LOCK),3000,'cache')}catch(e){}
   const key='https://locked.local/'+path;
   if(c){try{const hit=await c.match(key);if(hit)return hit.blob()}catch(e){}}
+  for(let i=0;i<50&&!(fb&&fb.storage);i++)await new Promise(r=>setTimeout(r,100));
   if(!fb||!fb.storage)throw new Error('offline');
-  const blob=await fb.getBlob(fb.sref(fb.storage,'locked/'+path));
+  const blob=await withTimeout(fb.getBlob(fb.sref(fb.storage,'locked/'+path)),25000,'storage '+path);
   if(c){try{await c.put(key,new Response(blob,{headers:{'Content-Type':blob.type||'application/octet-stream'}}))}catch(e){}}
   return blob;
 }
@@ -878,7 +880,8 @@ $('#dlAll').onclick=async()=>{
 async function startApp(){
   if(appStarted)return;appStarted=true;
   for(let i=0;i<100&&!books.length;i++)await new Promise(r=>setTimeout(r,100));
-  try{hymns=await getLockedJSON('data/hymns.json')}catch(e){console.error(e);$('#hymnList').innerHTML='<div class="empty">찬송가 자료를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.<br><span style="font-size:12px;opacity:.7">'+esc((e&&(e.code||e.message))||String(e))+'</span></div>';appStarted=false;return}
+  $('#hymnList').innerHTML='<div class="empty">찬송가 목록을 받는 중…<br><span style="font-size:12px;opacity:.7">처음 한 번만 걸려요</span></div>';
+  try{hymns=await getLockedJSON('data/hymns.json')}catch(e){console.error(e);$('#hymnList').innerHTML='<div class="empty">찬송가 자료를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.<br><span style="font-size:12px;opacity:.7">'+esc((e&&(e.code||e.message))||String(e))+'</span><br><button class="tint" style="margin-top:12px;padding:10px 18px" onclick="location.reload()">다시 시도</button></div>';appStarted=false;return}
   buildHymnIdx();
   const q=LS.get('hymnQ','');$('#hymnQ').value=q;$('#hymnClear').classList.toggle('hidden',!q);renderHymnList(searchHymns(q));
   const hn=LS.get('hymn',null);if(hn)openHymn(hn);
