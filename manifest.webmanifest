@@ -1,6 +1,6 @@
 {
-  "name": "준킴 성경",
-  "short_name": "준킴 성경",
+  "name": "이때이 성경찬송",
+  "short_name": "이때이 성경찬송",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -8,7 +8,7 @@
   "theme_color": "#ffffff",
   "lang": "ko",
   "icons": [
-    {"src": "icon-jk-180.png", "sizes": "180x180", "type": "image/png"},
-    {"src": "icon-jk-512.png", "sizes": "512x512", "type": "image/png"}
+    {"src": "icon-ittei-180.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "icon-ittei-512.png", "sizes": "512x512", "type": "image/png"}
   ]
 }
